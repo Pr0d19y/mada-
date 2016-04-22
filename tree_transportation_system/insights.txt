@@ -1,0 +1,11 @@
+
+Servo Controll
+1. tried to controll servo motor directly from Rpi (GPIO.PWM, ServoBlaster)
+there was a lott of jitter, sometimes the motor did more than 360 degrees movement.
+looked at the signal with a scope and there are many interferences and the signal is not consistant.
+
+2. tried to controll 6 Servos at the same time from an arduino - the signal was fine, no jitter.
+motor moved repitibly for a few hours.
+
+* maybe the controller board (that reads the inputs, controlls the DC motors + servo + sends signals to the Rpi players) shuld be an arduino
+- if so, need a simple level shifter (maybe just use resistors its a one way signal 5V --> 3V)
