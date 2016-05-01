@@ -1,13 +1,15 @@
 __author__ = 'Or Levi'
 
 #import movie_player
+import advisor_config as config
+import time
 import RPi.GPIO as GPIO
 
 
 class advisor(object):
     """
-    control one screen on the "Big Tree display"
-    toggle between two different movies according to GPIO input signal
+    controls one advisor screen.
+    activates the advisor video according to GPIO input.
     """
 
     def __init__(self, gpio_number, movie):
@@ -17,6 +19,8 @@ class advisor(object):
 
         self.control_gpio = gpio_number
         self.movie = movie
+        self.last_rise_time = time.time()
+        self.last_fall_time = time.time()
 
         GPIO.setmode(GPIO.BOARD)  # use board numbers (ie pin1, pin2 of board and not of the chip)
         GPIO.setup(self.control_gpio, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -26,9 +30,11 @@ class advisor(object):
         current_state = GPIO.input(self.control_gpio)
         if current_state:
             print 'event detected, ch: {}, RISING event'.format(channel)
+            self.last_rise_time = time.time()
             #self.movie_controller.play()
         else:
             print 'event detected, ch: {}, FALLING event'.format(channel)
+            self.last_fall_time = time.time()
             #self.movie_controller.stop()
 
     def quit(self):
