@@ -21,7 +21,8 @@ class advisor(object):
         self.control_gpio = gpio_number
         self.movie = movie
         self.last_event_time = 0
-
+        self.last_event_was_rise = True
+        
         GPIO.setmode(GPIO.BOARD)  # use board numbers (ie pin1, pin2 of board and not of the chip)
         GPIO.setup(self.control_gpio, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.add_event_detect(self.control_gpio, GPIO.BOTH, callback=self.event, bouncetime=50)
@@ -31,23 +32,21 @@ class advisor(object):
         current_state = GPIO.input(self.control_gpio)
         if current_state:            
             print 'debug print : PLAY THREAD started'
+            self.last_event_was_rise = True
             play_thread = threading.Thread(target=self.play_after_delay)
             play_thread.start() 
         else:  
             print 'debug print : STOP THREAD started'
+            self.last_event_was_rise = False
             stop_thread = threading.Thread(target=self.pause_wait_and_stop)
             stop_thread.start()             
-
-    def stop_prev_event_threads(self):
-        ''' this method kills previous event threads (i.e threads that didnt finish delay phases) '''
-        print "debug print : KILLING prev threads"
 
     def play_after_delay(self):
         ''' this method waits the DELAY_TIME specified in the config file, and then play the video ''' 
         time.sleep(config.DELAY_TIME)
         time_since_last_event = time.time() - self.last_event_time
         # make sure there wasn't another event since this method was called before executing any other commands
-        if time_since_last_event >= config.DELAY_TIME:
+        if time_since_last_event >= config.DELAY_TIME and self.last_event_was_rise:
             print "debug print : movie PLAY called"
             #self.movie_controller.play()
               
@@ -59,7 +58,7 @@ class advisor(object):
         time.sleep(config.PAUSE_TIME)
         time_since_last_event = time.time() - self.last_event_time
         # make sure there wasn't another event since this method was called before executing any other commands
-        if time_since_last_event >= config.PAUSE_TIME:
+        if time_since_last_event >= config.PAUSE_TIME and not self.last_event_was_rise:
             print "debug print : movie STOP called"
             #self.movie_controller.stop()
 
@@ -69,7 +68,7 @@ class advisor(object):
 
 if __name__ == '__main__':
     movie = r'path/to/movie'
-    gpio = 22
+    gpio = 37
     player = advisor(gpio_number=gpio, movie=movie)
 
     q = raw_input("Do you want to exit? (Y)")
