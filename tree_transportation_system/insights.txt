@@ -9,3 +9,9 @@ motor moved repitibly for a few hours.
 
 * maybe the controller board (that reads the inputs, controlls the DC motors + servo + sends signals to the Rpi players) shuld be an arduino
 - if so, need a simple level shifter (maybe just use resistors its a one way signal 5V --> 3V)
+
+
+update (14.5.2016):
+1. tried again to control servo directly from pi with pigpio (http://abyz.co.uk/rpi/pigpio/)
+    - signal is very consistent and nice.
+    - this library seems to be default in the newer distribution of raspberry pi 3 (so I guess its a good pick)
