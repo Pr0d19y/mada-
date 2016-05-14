@@ -6,10 +6,14 @@ import pigpio
 
 class main_tree_controller(object):
     """
-    control one screen on the "Big Tree display"
-    toggle between two different movies according to GPIO input signal
+    'Big Tree display' controller
+    inputs:
+        - buttons_dict, dictionary of button_name, gpio
+    outputs:
+        - servos_dict, dictionary of servo_name, gpio - control servos
+        - dc_motors_dict, dictionary of motor_name, gpio - control DC motors
+        - tree_players_dict, dictionary of player_name, gpio - control other raspberry pi players
     """
-
     def __init__(self, servos_dict, dc_motors_dict, tree_players_dict, buttons_dict):
         print 'starting main tree controller'
 
@@ -43,6 +47,14 @@ class main_tree_controller(object):
             self.my_pigpio.set_mode(pin_number, pigpio.OUTPUT)
 
     def event(self, channel):
+        """
+        called when some input has changed (callback function)
+        - read all inputs
+        - determine desired outputs
+        - set outputs
+        :param channel:
+        :return:
+        """
         current_state = self.read_current_buttons_state()
 
         '''
@@ -59,10 +71,20 @@ class main_tree_controller(object):
             GPIO.output(self.tree_players_dict['player1'], 0)
 
     def servo_mover(self, pin, duty):
+        """
+        change duty cicle of one servo motor to move it to a new position
+        :param pin: servo GPIO
+        :param duty: new duty cicle
+        :return:
+        """
         print('changing servo on pin: {} to dc: {}'.format(pin, duty))
         self.my_pigpio.set_servo_pulsewidth(pin, duty)
 
     def read_current_buttons_state(self):
+        """
+        read all buttons states
+        :return: a dictionary of {button_name: state}
+        """
         print('in read_current_buttons_state')
         state = {}
         for button_name, pin_number in self.buttons_dict.iteritems():
