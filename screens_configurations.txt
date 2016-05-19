@@ -1,0 +1,15 @@
+10" display:
+	in /boot/config.txt
+	- set hdmi_group=2
+	- set hdmi_mode=81
+
+
+5" display:
+	from: https://learn.adafruit.com/adafruit-5-800-400-tft-hdmi-monitor-touchscreen-backpack/raspberry-pi-config
+	in /boot/config.txt
+	- set hdmi_force_hotplug=1
+	- set hdmi_group=2
+	- set hdmi_mode=1
+	- set hdmi_mode=87
+	- set hdmi_cvt= 800 480 60 6 0 0 0
+	- max_usb_current=1
