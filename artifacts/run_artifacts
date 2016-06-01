@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "adding directories to PYTHONPATH"
+export PYTHONPATH=${PYTHONPATH}:..
+echo $PYTHONPATH
+echo "running artifacts.py"
+python artifacts.py
