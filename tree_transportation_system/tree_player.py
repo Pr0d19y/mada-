@@ -20,7 +20,7 @@ class tree_player(object):
         self.movie_1 = movie_1
         self.movie_2 = movie_2
 
-        GPIO.setmode(GPIO.BOARD)  # use board numbers (ie pin1, pin2 of board and not of the chip)
+        GPIO.setmode(GPIO.BCM)  # use board numbers (ie pin1, pin2 of board and not of the chip)
         GPIO.setup(self.control_gpio, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.add_event_detect(self.control_gpio, GPIO.BOTH, callback=self.event, bouncetime=50)
 
