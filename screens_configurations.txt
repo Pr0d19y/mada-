@@ -1,7 +1,8 @@
 10" display:
 	in /boot/config.txt
 	- set hdmi_group=2
-	- set hdmi_mode=81
+	- set hdmi_cvt=800 480 60 6 0 0 0
+    - set hdmi_mode=87
 
 
 5" display:
