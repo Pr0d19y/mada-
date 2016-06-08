@@ -4,6 +4,9 @@ import time
 
 ## Female ##
 
+# Set Video Files
+idle_video = '/home/pi/Haavaka/avkanim_blink.mp4'
+
 # Const
 CATCH_TIME_TH = 5 # seconds
 
@@ -21,12 +24,44 @@ output(bee_vibrate, False)
 output(bee_lights,  False)
 output(fem_catch,   False)
 
-# Set Videos
-flags = '--loop'
-male_pre  = OMXPlayer('/home/pi/Haavaka/avkanim_blink.mp4', '--loop')
-male_post = OMXPlayer('/home/pi/Haavaka/<<<NAME>>>>.mp4', '--loop')
+if female:
 
-while True:
+ def runFSM(state):
+   while True:
+     state = state()
+     
+  def state_idle():
+    output(flag_male, False)
+    play_video(idle_video, loop=True)
+    while True:
+      if input(wait_for_bee):
+        return(state_wait_for_bee)
+        
+  def state_bee_on():
+    output(flag_male, False)
+    # play_video(idle_video, loop=True)
+    start_time = time.time()
+    while  True:
+      if not input(bee_on):
+        return state_wait_for_bee
+      if (time.time() - start_time)>= BEE_TIME_TH:
+        return state_dust_complete
+
+  def state_dust_complete():
+    output(flag_male, True)
+    play_video(dust_complete_video, wait=True)
+    return state_idle
+  
+  def state_wait_for_bee():
+    output(flag_male, False)
+    # play_video(idle_video, loop=True)
+    while True:
+      if input(bee_on):
+        return state_bee_on
+
+
+# This is the old code
+while False:
     male_pre.play()
     is_bee_catched = False
     catch_time = 0
