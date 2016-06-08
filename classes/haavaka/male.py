@@ -4,6 +4,9 @@ import time
 
 ## Male ##
 
+# Set Video Files
+male_pre  = '/home/pi/Haavaka/avkanim_blink.mp4'
+
 # Const
 CATCH_TIME_TH = 5 # seconds
 
@@ -24,12 +27,37 @@ output(bee_vibrate, False)
 output(bee_lights,  False)
 output(fem_catch,   False)
 
-# Set Videos
-flags = '--loop'
-male_pre  = OMXPlayer('/home/pi/Haavaka/avkanim_blink.mp4', '--loop')
-male_post = OMXPlayer('/home/pi/Haavaka/<<<NAME>>>>.mp4', '--loop')
+if male:
+  def state_idle():
+    output(bee_buzz, False)
+    output(flag_female, False)
+    play_video(idle_video, loop=True)
+    while True:
+      if input(bee_on):
+        return state_bee_on
+        
+  def state_bee_on():
+    output(bee_buzz, True)
+    output(flag_female, False)
+    # play_video(bee_on_video, loop=True)
+    start_time = time.time()
+    while  True:
+      if not input(bee_on):
+        return state_idle
+      if (time.time() - start_time)>= BEE_TIME_TH:
+        return state_wait_for_female
+  
+  def state_wait_for_female():
+    output(bee_buzz, False)
+    output(flag_female, True)
+    play_video(wait_for_female_video, loop=True)
+    while not input(flag_idle):
+      output(bee2female, input(bee_on))
+    return state_idle
 
-while True:
+
+# This is the old code
+while False:
     male_pre.play()
     is_bee_catched = False
     catch_time = 0
