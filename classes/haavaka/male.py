@@ -11,11 +11,12 @@ male_pre  = '/home/pi/Haavaka/avkanim_blink.mp4'
 CATCH_TIME_TH = 5 # seconds
 
 # Set GPIO names
-bee_vibrate = 40
-bee_lights  = 38
-bee_catch   = 36
-fem_catch   = 37
-fem_release = 
+bee_buzz    = 35
+bee_lights  = 36
+flag_female = 37
+bee_on      = 38
+flag_idle   = 31
+bee2female  = 32
 
 setup(bee_vibrate, OUT)
 setup(bee_lights,  OUT)
@@ -23,37 +24,37 @@ setup(bee_catch,   IN, pull_up_down=PUD_DOWN)
 setup(fem_release, IN, pull_up_down=PUD_DOWN)
 setup(fem_catch,   OUT)
 
-output(bee_vibrate, False)
-output(bee_lights,  False)
-output(fem_catch,   False)
+output(, False)
+output(,  False)
+output(,   False)
 
-if male:
-  def state_idle():
-    output(bee_buzz, False)
-    output(flag_female, False)
-    play_video(idle_video, loop=True)
-    while True:
-      if input(bee_on):
-        return state_bee_on
+def state_idle():
+  output(bee_buzz,    False)
+  output(bee_lights,  False)
+  output(flag_female, False)
+  play_video(idle_video, loop=True)
+  while True:
+    if input(bee_on):
+      return state_bee_on
         
-  def state_bee_on():
-    output(bee_buzz, True)
-    output(flag_female, False)
-    # play_video(bee_on_video, loop=True)
-    start_time = time.time()
-    while  True:
-      if not input(bee_on):
-        return state_idle
-      if (time.time() - start_time)>= BEE_TIME_TH:
-        return state_wait_for_female
+def state_bee_on():
+  output(bee_buzz, True)
+  output(flag_female, False)
+  # play_video(bee_on_video, loop=True)
+  start_time = time.time()
+  while  True:
+    if not input(bee_on):
+      return state_idle
+    if (time.time() - start_time)>= BEE_TIME_TH:
+      return state_wait_for_female
   
-  def state_wait_for_female():
-    output(bee_buzz, False)
-    output(flag_female, True)
-    play_video(wait_for_female_video, loop=True)
-    while not input(flag_idle):
-      output(bee2female, input(bee_on))
-    return state_idle
+def state_wait_for_female():
+  output(bee_buzz, False)
+  output(flag_female, True)
+  play_video(wait_for_female_video, loop=True)
+  while not input(flag_idle):
+    output(bee2female, input(bee_on))
+  return state_idle
 
 
 # This is the old code

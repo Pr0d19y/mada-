@@ -1,5 +1,3 @@
-from omxplayer import OMXPlayer
-from RPi.GPIO import *
 import time
 
 ## Female ##
@@ -7,36 +5,34 @@ import time
 # Set Video Files
 idle_video = '/home/pi/Haavaka/avkanim_blink.mp4'
 
-# Const
-CATCH_TIME_TH = 5 # seconds
-
 # Set GPIO names
-bee_lights  = 38
-bee_catch   = 36
-male_release = 
+bee_on        = 38
+wait_for_bee  = 31
+flag_male     = 37
 
 setup(bee_lights,  OUT)
 setup(bee_catch,   IN, pull_up_down=PUD_DOWN)
 setup(fem_release, IN, pull_up_down=PUD_DOWN)
 setup(fem_catch,   OUT)
 
-output(bee_vibrate, False)
-output(bee_lights,  False)
 output(fem_catch,   False)
 
 if female:
 
- def runFSM(state):
-   while True:
-     state = state()
-     
   def state_idle():
     output(flag_male, False)
     play_video(idle_video, loop=True)
     while True:
       if input(wait_for_bee):
         return(state_wait_for_bee)
-        
+
+  def state_wait_for_bee():
+    output(flag_male, False)
+    # play_video(idle_video, loop=True)
+    while True:
+      if input(bee_on):
+        return state_bee_on
+
   def state_bee_on():
     output(flag_male, False)
     # play_video(idle_video, loop=True)
@@ -52,13 +48,6 @@ if female:
     play_video(dust_complete_video, wait=True)
     return state_idle
   
-  def state_wait_for_bee():
-    output(flag_male, False)
-    # play_video(idle_video, loop=True)
-    while True:
-      if input(bee_on):
-        return state_bee_on
-
 
 # This is the old code
 while False:

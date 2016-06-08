@@ -3,21 +3,28 @@ import time
 def main():
     from classes.omxplayer import OMXPlayer
 
-    filename1 = '/home/pi/Haavaka/blink_test_02.mp4'
-    filename2 = '/home/pi/Haavaka/all_avkanim.mp4'
-    flags = '' #'--loop'
+    movie_1 = '/home/pi/Haavaka/blink_test_02.mp4'
+    movie_2 = '/home/pi/Haavaka/all_avkanim.mp4'
 
-    pl1 = OMXPlayer(filename1, flags)
-    pl1.pause()
-    pl2 = OMXPlayer(filename2, flags)
+    movie_1_controller = omxplayer.OMXPlayer(mediafile=movie_1, args='--loop')
+    time.sleep(0.5)
+    movie_1_controller.toggle_pause()
+    movie_2_controller = omxplayer.OMXPlayer(mediafile=movie_2, args='--loop', start_playback=True)
+    time.sleep(0.5)
 
-    pl2.play()
-    pl1.play()
     time.sleep(1)
-    pl1.pause()
-    time.sleep(0.2)
-    pl2.play()
-    time.sleep(1)
-    pl2.pause()
+    
+    movie_2_controller.toggle_pause()
+    movie_1_controller.toggle_pause()
 
-    return pl1, pl2
+    time.sleep(1)
+
+    movie_2_controller.toggle_pause()
+    movie_1_controller.toggle_pause()
+
+    time.sleep(1)
+
+    movie_2_controller.stop()
+    movie_1_controller.stop()
+
+main()
