@@ -15,4 +15,7 @@ elif input(bi_jmp):
 else:
     import female
 
-    
+def runFSM(state):
+    while True:
+        state = state()
+        
