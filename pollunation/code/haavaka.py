@@ -11,12 +11,15 @@ bi_jmp      = 33
 setup(male_jmp, IN, pull_up_down=PUD_DOWN)
 setup(bi_jmp,   IN, pull_up_down=PUD_DOWN)
 
-if input(male_jmp):
-    from male import *
-elif input(bi_jmp):
-    from bisex import *
-else:
-    from female import *
+from zuccini import *
+#if input(male_jmp):
+#    from male import *
+#elif input(zuccini):
+#    from zuccini import *
+#elif input(bi_jmp):
+#    from bisex import *
+#else:
+#    from female import *
 
 def runFSM(state):
     while True:
