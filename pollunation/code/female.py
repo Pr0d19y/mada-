@@ -3,7 +3,8 @@ import time
 ## Female ##
 
 # Set Video Files
-idle_video = '/home/pi/Haavaka/avkanim_blink.mp4'
+idle_video = '/home/pi/mada-/pollunation/videos/tzaleket_blink_00.mp4'
+dust_complete_video = '/home/pi/mada-/pollunation/videos/tzaleket_after_00.mp4'
 
 # Set GPIO names
 bee_on        = 38
@@ -48,29 +49,3 @@ if female:
     play_video(dust_complete_video, wait=True)
     return state_idle
   
-
-# This is the old code
-while False:
-    male_pre.play()
-    is_bee_catched = False
-    catch_time = 0
-    while catch_time < CATCH_TIME_TH:
-        while not input(bee_catch):
-            output(bee_vibrate, False)
-            pass
-        start_time = time.time()
-        while input(bee_catch):
-            output(bee_vibrate, True)
-            pass
-        end_time  = time.time()
-        catch_time = end_time - start_time
-    
-    is_bee_catched = True
-    
-    output(fem_catch, True)
-    male_pre.pause()
-    male_post.play()
-
-    while not fem_release:
-        pass
-    male_post.pause()

@@ -22,6 +22,6 @@ def runFSM(state):
     while True:
         print 'Starting state: {0}'.format(state.__name__)
         state = state()
-        
+
 if __name__=='__main__':
     runFSM(state_idle)

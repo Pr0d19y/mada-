@@ -1,30 +1,33 @@
 import time
+import sys
+sys.path.append('/home/pi/mada-')
+from classes import omxplayer
 
-def main():
-    from classes.omxplayer import OMXPlayer
+print 'Debug 1'
+movie_1 = '/home/pi/mada-/pollunation/videos/avkanim_blink_00.mp4'
+movie_2 = '/home/pi/mada-/pollunation/videos/tzaleket_blink_00.mp4'
 
-    movie_1 = '/home/pi/Haavaka/blink_test_02.mp4'
-    movie_2 = '/home/pi/Haavaka/all_avkanim.mp4'
+print 'Debug 2'
+o1 = omxplayer.OMXPlayer(mediafile=movie_1, loop = False)
+o2 = omxplayer.OMXPlayer(mediafile=movie_2, loop = False)
 
-    movie_1_controller = OMXPlayer(mediafile=movie_1, args='--loop')
-    time.sleep(0.5)
-    movie_1_controller.toggle_pause()
-    movie_2_controller = OMXPlayer(mediafile=movie_2, args='--loop', start_playback=True)
-    time.sleep(0.5)
-
-    time.sleep(1)
+print 'Debug 3'
+o1.play()
+time.sleep(2)
     
-    movie_2_controller.toggle_pause()
-    movie_1_controller.toggle_pause()
+print 'Debug 4'
+o1.pause()
+o2.play()
 
-    time.sleep(1)
+time.sleep(2)
 
-    movie_2_controller.toggle_pause()
-    movie_1_controller.toggle_pause()
+print 'Debug 5'
+o2.pause()
+o1.play()
 
-    time.sleep(1)
+time.sleep(2)
 
-    movie_2_controller.stop()
-    movie_1_controller.stop()
+print 'Debug 6'
+o1.stop()
+o2.stop()
 
-main()
