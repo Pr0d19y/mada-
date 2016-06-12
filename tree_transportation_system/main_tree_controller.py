@@ -5,6 +5,8 @@ import RPi.GPIO as GPIO
 import pigpio
 import os
 import datetime
+from time import sleep
+import threading
 import tree_controller_config as cfg
 
 
@@ -32,12 +34,14 @@ class main_tree_controller(object):
         self.tree_players_dict = tree_players_dict
         self.buttons_dict = buttons_dict
         self.my_pigpio = pigpio.pi()
+        self.running = True
+        self.current_state = None
 
         GPIO.setmode(GPIO.BCM)  # use chip numbering
         for button_name, pin_number in self.buttons_dict.iteritems():
             self.logger.info('setting up button: {}'.format(button_name))
             GPIO.setup(pin_number, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-            GPIO.add_event_detect(pin_number, GPIO.BOTH, callback=self.event, bouncetime=50)
+            #GPIO.add_event_detect(pin_number, GPIO.BOTH, callback=self.event, bouncetime=250)
 
         for player_name, pin_number in self.tree_players_dict.iteritems():
             self.logger.info('setting up player: {}'.format(player_name))
@@ -52,32 +56,60 @@ class main_tree_controller(object):
             self.logger.info('setting up dc motor: {}'.format(servo_motor_name))
             self.my_pigpio.set_mode(pin_number, pigpio.OUTPUT)
 
-    def event(self, channel):
+        self.button_reader_thread = threading.Thread(target=self.button_reader)
+        self.button_reader_thread.start()
+
+    def button_reader(self):
+        self.logger.info('button_reader started')
+        while self.running:
+            current_state = self.read_current_buttons_state()
+            if current_state != self.current_state:
+                self.current_state = current_state
+                self.main_loop()
+            sleep(0.005)
+        self.logger.info('button_reader ended')
+
+    def main_loop(self):
         """
-        called when some input has changed (callback function)
-        - read all inputs
-        - determine desired outputs
-        - set outputs
-        :param channel:
+        one iteration of main loop,
+        called when input is changed,
+        define logic and change tree motors, movies etc.
         :return:
         """
-        current_state = self.read_current_buttons_state()
+        current_state = self.current_state
 
-        '''
-        here should be some logic that will determine the state of the servos,
-        dc motors and players according to buttons state
-        '''
         if current_state['button1_water'] == 1:
             self.logger.debug('demo, if water = HIGH, move first servo and signal HIGH for first player')
-            self.servo_mover(pin=self.servos_dict['leaf2'], duty=cfg.SERVO_MAXIMAL_POSITION)
+            self.servo_gradual_movement(pin=self.servos_dict['leaf2'], current_duty=cfg.SERVO_MINIMAL_POSITION, target_duty=cfg.SERVO_MAXIMAL_POSITION)
             GPIO.output(self.tree_players_dict['player1'], 1)
             self.dc_motor_mover(pin=self.dc_motors_dict['water'], duty=cfg.DC_MOTOR_MAXIMAL_DUTYCYCLE)
 
         else:
             self.logger.debug('demo, if water = LOW, move first servo and signal HIGH for first player')
-            self.servo_mover(pin=self.servos_dict['leaf2'], duty=cfg.SERVO_MINIMAL_POSITION)
+            self.servo_gradual_movement(pin=self.servos_dict['leaf2'], current_duty=cfg.SERVO_MAXIMAL_POSITION, target_duty=cfg.SERVO_MINIMAL_POSITION)
             GPIO.output(self.tree_players_dict['player1'], 0)
             self.dc_motor_mover(pin=self.dc_motors_dict['water'], duty=cfg.DC_MOTOR_MINIMAL_DUTYCYCLE)
+
+    def servo_gradual_movement(self, pin, current_duty, target_duty):
+        """
+        move a servo in a few legs to get a slower movement
+        :param pin:
+        :param current_duty:
+        :param target_duty:
+        :return:
+        """
+        self.logger.debug('gradual movement started, pin: {}, current duty: {}, target duty: {}'.format(pin, current_duty, target_duty))
+
+        if current_duty < target_duty:
+            delta = cfg.SERVO_GRADUAL_MOVEMENT_STEP
+        else:
+            delta = 0 - cfg.SERVO_GRADUAL_MOVEMENT_STEP
+
+        for step in range(current_duty + delta, target_duty + delta, delta):
+            self.servo_mover(pin=pin, duty=step)
+            sleep(cfg.SERVO_GRADUAL_MOVEMENT_DELAY)
+
+        self.logger.debug('gradual movement ended')
 
     def dc_motor_mover(self, pin, duty):
         """
@@ -86,7 +118,6 @@ class main_tree_controller(object):
         :param duty: new duty cycle
         :return:
         """
-        self.logger.debug('changing DC on pin: {} to dc: {}'.format(pin, duty))
         self.my_pigpio.set_PWM_dutycycle(pin, duty)
 
     def servo_mover(self, pin, duty):
@@ -96,7 +127,6 @@ class main_tree_controller(object):
         :param duty: new duty cycle
         :return:
         """
-        self.logger.debug('changing servo on pin: {} to dc: {}'.format(pin, duty))
         self.my_pigpio.set_servo_pulsewidth(pin, duty)
 
     def read_current_buttons_state(self):
@@ -104,17 +134,15 @@ class main_tree_controller(object):
         read all buttons states
         :return: a dictionary of {button_name: state}
         """
-        self.logger.debug('in read_current_buttons_state')
         state = {}
         for button_name, pin_number in self.buttons_dict.iteritems():
             st = GPIO.input(pin_number)
-            self.logger.debug('button: {}, pin: {}, state: {}'.format(button_name, pin_number, st))
             state[button_name] = st
 
-        self.logger.debug('read state dict: {}'.format(state))
         return state
 
     def quit(self):
+        self.running = False
         for dc_motor_name, pin_number in self.dc_motors_dict.iteritems():
             self.logger.info('stopping dc motor: {}'.format(dc_motor_name))
             self.my_pigpio.set_PWM_dutycycle(pin_number, 0)
@@ -123,6 +151,7 @@ class main_tree_controller(object):
             self.logger.info('stopping servo motor: {}'.format(servo_motor_name))
             self.my_pigpio.set_servo_pulsewidth(pin_number, 0)
 
+        sleep(0.01)
         GPIO.cleanup()
         self.my_pigpio.stop()
 
