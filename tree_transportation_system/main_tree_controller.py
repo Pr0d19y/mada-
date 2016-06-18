@@ -53,7 +53,7 @@ class main_tree_controller(object):
             self.my_pigpio.set_PWM_frequency(pin_number, cfg.DC_MOTOR_PWM_FREQUENCY)
 
         for servo_motor_name, pin_number in self.servos_dict.iteritems():
-            self.logger.info('setting up dc motor: {}'.format(servo_motor_name))
+            self.logger.info('setting up servo motor: {}'.format(servo_motor_name))
             self.my_pigpio.set_mode(pin_number, pigpio.OUTPUT)
 
         self.button_reader_thread = threading.Thread(target=self.button_reader)
@@ -105,11 +105,13 @@ class main_tree_controller(object):
         else:
             delta = 0 - cfg.SERVO_GRADUAL_MOVEMENT_STEP
 
-        for step in range(current_duty + delta, target_duty + delta, delta):
+        for step in range(current_duty, target_duty + delta, delta):
             self.servo_mover(pin=pin, duty=step)
             sleep(cfg.SERVO_GRADUAL_MOVEMENT_DELAY)
 
+        self.servo_mover(pin=pin, duty=0)
         self.logger.debug('gradual movement ended')
+
 
     def dc_motor_mover(self, pin, duty):
         """
