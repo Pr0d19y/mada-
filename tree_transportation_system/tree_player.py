@@ -1,11 +1,12 @@
 __author__ = 'netanel'
 
+import threading
 import logging
 import datetime
 import os
 from classes import omxplayer
 import RPi.GPIO as GPIO
-import time
+from time import sleep
 
 
 class tree_player(object):
@@ -24,34 +25,64 @@ class tree_player(object):
         self.control_gpio = gpio_number
         self.movie_1 = movie_1
         self.movie_2 = movie_2
+        self.current_state = None
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.control_gpio, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.add_event_detect(self.control_gpio, GPIO.BOTH, callback=self.event, bouncetime=300)
+        #GPIO.add_event_detect(self.control_gpio, GPIO.BOTH, callback=self.event, bouncetime=300)
 
-        self.movie_1_controller = omxplayer.OMXPlayer(mediafile=self.movie_1, args='--loop')
-        time.sleep(0.5)
-        self.movie_1_controller.toggle_pause()
-        self.movie_2_controller = omxplayer.OMXPlayer(mediafile=self.movie_2, args='--loop', start_playback=True)
-        time.sleep(0.5)
+        self.movie_1_controller = omxplayer.OMXPlayer(mediafile=self.movie_1, args='--loop --no-osd -b', start_playback=False)
+        self.movie_2_controller = omxplayer.OMXPlayer(mediafile=self.movie_2, args='--loop --no-osd -b', start_playback=False)
 
-    def event(self, channel):
-        current_state = GPIO.input(self.control_gpio)
+        self.running = True
+        self.button_reader_thread = threading.Thread(target=self.button_reader)
+        self.button_reader_thread.start()
+
+    def button_reader(self):
+        self.logger.info('button_reader started')
+        while self.running:
+            current_state = self.read_current_buttons_state()
+            if current_state != self.current_state:
+                self.current_state = current_state
+                self.main_loop()
+            sleep(0.005)
+        self.logger.info('button_reader ended')
+
+    def read_current_buttons_state(self):
+        """
+        read control_gpio state
+        """
+        return GPIO.input(self.control_gpio)
+
+    def main_loop(self):
+        """
+        one iteration of main loop,
+        called when input is changed,
+        define logic and change tree motors, movies etc.
+        :return:
+        """
+        current_state = self.current_state
         if current_state:
-            self.logger.info('event detected, ch: {}, RISING event'.format(channel))
-            self.logger.info('toggling pause for two movies'.format(channel))
-            self.movie_2_controller.toggle_pause()
-            self.movie_1_controller.toggle_pause()
+            self.logger.info('state changed to HIGH, show BAD fruit movie')
+            self.movie_2_controller.pause()
+            self.movie_1_controller.seek_0()
+            sleep(0.1)
+            self.movie_1_controller.play()
+
         else:
-            self.logger.info('event detected, ch: {}, FALLING event'.format(channel))
-            self.logger.info('doing nothing'.format(channel))
-            #self.movie_2_controller.toggle_pause()
-            #self.movie_1_controller.toggle_pause()
+            self.logger.info('state changed to LOW, show GOOD fruit movie')
+            self.movie_1_controller.pause()
+            self.movie_2_controller.seek_0()
+            sleep(0.1)
+            self.movie_2_controller.play()
 
     def quit(self):
+        self.running = False
+        sleep(0.05)
         GPIO.cleanup()
         self.movie_1_controller.stop()
         self.movie_2_controller.stop()
+
 
 def init_logging():
     logger = logging.getLogger()
@@ -68,8 +99,8 @@ def init_logging():
 
 if __name__ == '__main__':
     init_logging()
-    movie1 = r'tomato_blink_sequence.mp4'
-    movie2 = r'tzaleket_blink.mp4'
+    movie1 = r'fruit_bad_720.mp4'
+    movie2 = r'fruit_good_720.mp4'
     gpio = 22
     player = tree_player(gpio_number=gpio, movie_1=movie1, movie_2=movie2)
 

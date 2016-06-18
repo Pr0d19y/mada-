@@ -1,5 +1,7 @@
 import pexpect
 import re
+import logging
+import sys
 
 from threading import Thread
 #from time import sleep
@@ -14,7 +16,8 @@ class OMXPlayer(object):
     _STATUS_REXP    = re.compile(r"V :\s*([\d.]+).*")
     _DONE_REXP      = re.compile(r"have a nice day.*")
 
-    _LAUNCH_CMD     = '/usr/bin/omxplayer -s %s %s'
+    #_LAUNCH_CMD     = '/usr/bin/omxplayer -s %s %s'
+    _LAUNCH_CMD     = '/usr/bin/omxplayer %s %s'
     _PAUSE_CMD      = 'p'
     _TOGGLE_SUB_CMD = 's'
     _QUIT_CMD       = 'q'
@@ -26,13 +29,15 @@ class OMXPlayer(object):
 
     def __init__(self, mediafile, loop=False, args="", start_playback=False):
         #args += " --no-osd"
-
+        self.logger = logging.getLogger('omxplayerLogger')
         self.loop = loop
             
         self.media_len = self.getMediaLength(mediafile)
-
         cmd = self._LAUNCH_CMD % (mediafile, args)
+        self.logger.info('starting omxplayer with command: {}'.format(cmd))
         self._process = pexpect.spawn(cmd)
+        f = open('pexpect_log_file', 'w')
+        self._process.logfile = f
         
         self.video = dict()
         self.audio = dict()
@@ -65,37 +70,40 @@ class OMXPlayer(object):
         #    self.current_audio_stream = 1
         #    self.current_volume = 0.0
 
-        self.time_till_pause = 0
-        self.time_of_play = time.time()              
-        self.position = 0
+        #self.time_till_pause = 0
+        #self.time_of_play = time.time()
+        #self.position = 0
         time.sleep(0.2)
         if not start_playback:
             self.pause()
         else:
             self.play()
 
-        self._position_thread = Thread(target=self._get_position)
-        self._position_thread.start()
-
-
+        # self._position_thread = Thread(target=self._get_position)
+        # self._position_thread.setDaemon(True)
+        # self._position_thread.start()
 
     def _get_position___old____(self):
         
         while True:
-            print 'Getting position'
+            self.logger.debug('Getting position')
+            #print 'Getting position'
             index = self._process.expect([self._STATUS_REXP,
                                             pexpect.TIMEOUT,
                                             pexpect.EOF,
                                             self._DONE_REXP])
-            print 'index == {}'.format(index)
+            self.logger.debug('index == {}'.format(index))
+            #print 'index == {}'.format(index)
             if index == 1: continue
             elif index in (2, 3): break
             else:
                 self.position = float(self._process.match.group(1))
-                print 'Position: {}'.format(self.position)
+                #self.logger.debug('Position: {}'.format(self.position))
+                #print 'Position: {}'.format(self.position)
 
             if self.position >= self.media_len - self._MEDIA_LENGTH_TH:
-                print 'Reached End (almost)'
+                self.logger.debug('Reached End (almost)')
+                #print 'Reached End (almost)'
                 if not self.loop:
                     self.pause()
                 self.restart()
@@ -104,6 +112,7 @@ class OMXPlayer(object):
             time.sleep(0.05)
 
     def _get_position(self):
+        self.logger.debug('_get_position STARTED')
         while True:
             if not self._process.isalive():
                 return
@@ -111,38 +120,54 @@ class OMXPlayer(object):
                 continue
 
             self.position = self.time_till_pause + (time.time() - self.time_of_play)
-            print 'Position: {}'.format(self.position)
+            #print 'Position: {}'.format(self.position)
+            #self.logger.debug('Position: {}'.format(self.position))
             if self.position >= self.media_len - self._MEDIA_LENGTH_TH:
-                print 'Reached End (almost)'
+                #print 'Reached End (almost)'
+                self.logger.debug('Reached End (almost)')
                 if not self.loop:
                     self.pause()
                     time.sleep(0.01)
                 self.restart()
 
             time.sleep(0.05)
-            
+
     def toggle_pause(self):
-        if self._process.send(self._PAUSE_CMD):
-            self.paused = not self.paused
-            if self.paused:
-                self.time_till_pause = self.position
-            else:
-                self.time_of_play = time.time()              
+        self.logger.debug('in toggle_pause')
+        self._process.send(self._PAUSE_CMD)
+        self.paused = not self.paused
+        if self.paused:
+            self.logger.debug('now movie should be PAUSED')
+            #self.time_till_pause = self.position
+        else:
+            self.logger.debug('now movie should be RUNNING')
+            #self.time_of_play = time.time()
             
     def play(self):
+        self.logger.debug('in play')
         if self.paused:
             self.toggle_pause()
 
     def pause(self):
+        self.logger.debug('in pause')
         if not self.paused:
             self.toggle_pause()
 
     def stop(self):
+        self.logger.debug('in stop')
         self._process.send(self._QUIT_CMD)
         self._process.terminate(force=True)
 
-    def restart(self):
+    def seek_0(self):
+        self.logger.debug('in seek_0')
         self._process.send(self._RESTART_CMD)
+
+    def restart(self):
+        self.logger.debug('in restart')
+        self.logger.debug('in restart')
+
+        a = self._process.send(self._RESTART_CMD)
+        self.logger.debug('process respond: {}'.format(a))
         self.time_till_pause = 0
         self.time_of_play = time.time()
 
@@ -165,6 +190,7 @@ class OMXPlayer(object):
         raise NotImplementedError
 
     def getMediaLength(self, mediafile):
+        self.logger.debug('in getMediaLength')
         cmd = self._LAUNCH_CMD % (mediafile, '-i')
         self._process = pexpect.spawn(cmd)
         line=self._process.readline()
@@ -176,4 +202,3 @@ class OMXPlayer(object):
                 s = check.group(3)
                 return float(s) + float(m)*60 + float(h)*60*60
             line=self._process.readline()
-                
