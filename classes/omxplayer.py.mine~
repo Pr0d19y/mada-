@@ -11,7 +11,7 @@ class OMXPlayer(object):
     _FILEPROP_REXP  = re.compile(r".*audio streams (\d+) video streams (\d+) chapters (\d+) subtitles (\d+).*")
     _VIDEOPROP_REXP = re.compile(r".*Video codec ([\w-]+) width (\d+) height (\d+) profile (\d+) fps ([\d.]+).*")
     _AUDIOPROP_REXP = re.compile(r"Audio codec (\w+) channels (\d+) samplerate (\d+) bitspersample (\d+).*")
-    _STATUS_REXP    = re.compile(r"A:\s*-?([\d.]+).*")
+    _STATUS_REXP    = re.compile(r"V :\s*([\d.]+).*")
     _DONE_REXP      = re.compile(r"have a nice day.*")
 
     _LAUNCH_CMD     = '/usr/bin/omxplayer -s %s %s'
@@ -36,7 +36,6 @@ class OMXPlayer(object):
         self.media_len = self.getMediaLength(mediafile)
 
         self._position_thread = None
-        self._loop_thread     = None
         
         self.cmd = self._LAUNCH_CMD % (mediafile, args)
         self.start_proc()
@@ -58,38 +57,15 @@ class OMXPlayer(object):
         else:
             self.play()
 
-        if  self._position_thread is None:
+        if self._position_thread is not None:
             self._position_thread = Thread(target=self._get_position)
             self._position_thread.start()
-        if  self._loop_thread     is None:
-            self._loop_thread     = Thread(target=self._do_loop)
-            self._loop_thread.start()
 
     def _get_position(self):
-        while not self.kill_self:
-            index = self._process.expect([self._STATUS_REXP,
-                                            pexpect.TIMEOUT,
-                                            pexpect.EOF,
-                                            self._DONE_REXP])
-            if self.debug>1:
-                print 'index == {}'.format(index)
-            if index == 1: continue
-            elif index in (2, 3): break
-            else:
-                pos = float(self._process.match.group(1))
-                self.time_till_pause = pos
-                self.time_of_play = time.time()
-                if self.debug>1:
-                    print 'Position: {}'.format(self.position)
-
-            time.sleep(0.05)
-
-    def _do_loop(self):
         while not self.kill_self: # self._process.isalive():            
             if self.paused:
                 continue
             elif self.loop and not self._process.isalive():
-                print 'DIED'
                 self.play()
 
             self.position = self.time_till_pause + (time.time() - self.time_of_play)
@@ -102,7 +78,6 @@ class OMXPlayer(object):
                     self.pause()
                     time.sleep(0.01)
                 self.restart()
-                self.play()
 
             time.sleep(0.05)
             
