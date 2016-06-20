@@ -11,23 +11,23 @@ print 'Debug 2'
 o1 = omxplayer.OMXPlayer(mediafile=movie_1, loop = False)
 o2 = omxplayer.OMXPlayer(mediafile=movie_2, loop = False)
 
-print 'Debug 3'
+print 'Play avkanim'
 o1.play()
 time.sleep(2)
     
-print 'Debug 4'
+print 'Play Tzaleket'
 o1.pause()
 o2.play()
 
 time.sleep(2)
 
-print 'Debug 5'
+print 'Play avkanim'
 o2.pause()
 o1.play()
 
 time.sleep(2)
 
-print 'Debug 6'
+print 'Stop all'
 o1.stop()
 o2.stop()
 
