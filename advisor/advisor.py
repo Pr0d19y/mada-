@@ -1,4 +1,4 @@
-bg__author__ = 'Or Levi'
+__author__ = 'Or Levi'
 
 import advisor_config as config
 import time
@@ -18,17 +18,19 @@ class advisor(object):
         print 'GPIO: {}'.format(gpio_number)
 
         self.control_gpio = gpio_number
+        self.stop_gpio = 40
         self.movie = movie
         self.current_state = None
         self.polling_tries = 0
         self.last_event_time = 0
         self.last_event_was_play = True
 
-        self.movie_controller = OMXPlayer(mediafile=self.movie,args="--win 0,0,400,400")
+        self.movie_controller = OMXPlayer(mediafile=self.movie,args="--loop")
 
         GPIO.setmode(GPIO.BOARD)  # use board numbers (ie pin1, pin2 of board and not of the chip)
         GPIO.setup(self.control_gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        #GPIO.add_event_detect(self.control_gpio, GPIO.BOTH, callback=self.event, bouncetime=100)
+        GPIO.setup(self.stop_gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.add_event_detect(self.stop_gpio, GPIO.FALLING, callback=self.quit, bouncetime=100)
         self.running = True
 
         self.pin_poll_thread = threading.Thread(target=self.poll_input)
@@ -59,6 +61,7 @@ class advisor(object):
             else:                                                                                   #stete has not changed, reset the stability count
                 self.polling_tries = 1                
             time.sleep(config.POLLING_DELAY)
+        print "debug print : quitting poll_input function"
             
     def play_after_delay(self):
         ''' this method waits the DELAY_TIME specified in the config file, and then play the video ''' 
@@ -84,19 +87,16 @@ class advisor(object):
             #self.movie_controller = OMXPlayer(mediafile=self.movie,args="--win 0,0,400,400")
             
 
-    def quit(self):
-        GPIO.cleanup()
-        self.running = False
-        time.sleep(3)
+    def quit(self, channel):
         print "debug print: Quitting"
-        # TODO: threading cleanup needed?
+        #GPIO.cleanup()
+        self.movie_controller.stop()
+        time.sleep(0.1)
+        self.running = False
+
+       # TODO: threading cleanup needed?
 
 if __name__ == '__main__':
-    #movie = r'/home/pi/Downloads/eyal_kimchi_4.mpg'
-    movie = r'/home/pi/Downloads/tomato_blink_sequence.mp4'
+    movie = config.movie
     gpio = 32
     player = advisor(gpio_number=gpio, movie=movie)
-
-    q = raw_input("Do you want to exit? (Y)")
-    if q is 'Y':
-        player.quit()
