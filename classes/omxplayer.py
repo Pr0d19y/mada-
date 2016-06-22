@@ -7,6 +7,8 @@ import time
 
 class OMXPlayer(object):
 
+    _SCREEN_SIZE_CMD = "fbset -s | grep geometry|awk '{print $2, $3}'"
+    
     _MEDIA_LEN_REXP = re.compile(r".*Duration: (\d+):(\d+):(\d+(.\d+)?),.*")
     _FILEPROP_REXP  = re.compile(r".*audio streams (\d+) video streams (\d+) chapters (\d+) subtitles (\d+).*")
     _VIDEOPROP_REXP = re.compile(r".*Video codec ([\w-]+) width (\d+) height (\d+) profile (\d+) fps ([\d.]+).*")
@@ -32,7 +34,11 @@ class OMXPlayer(object):
         self.start_playback = start_playback
 
         if self.debug:
-            args += " --win 0,0,800,400 "
+            print 'DEBUG'
+            import os
+            screen_size = os.popen(self._SCREEN_SIZE_CMD).read().split()
+            w = int(screen_size[0]); h = int(screen_size[1])
+            args += " --win {0},{1},{2},{3} ".format(int(w/2),int(h/2),int(w/4+w/2),int(h/4+h/2))
         if self.loop:
             args += " --loop "
         

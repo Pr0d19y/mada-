@@ -1,4 +1,4 @@
-gimport sys
+import sys
 sys.path.append('/home/pi/mada-/classes')
 from omxplayer import OMXPlayer
 from RPi.GPIO import *
@@ -6,7 +6,9 @@ import time
 
 ## Female ##
 
-debug=0
+debug_jmp = 29
+setup(debug_jmp, IN, pull_up_down=PUD_UP)
+debug = not input(debug_jmp)
 
 # Const
 CATCH_TIME_TH = 3 # seconds

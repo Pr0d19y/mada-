@@ -1,4 +1,3 @@
-
 import sys
 sys.path.append('/home/pi/mada-/classes')
 from omxplayer import OMXPlayer
@@ -7,7 +6,9 @@ import time
 
 ## Male ##
 
-debug=0
+debug_jmp = 29
+setup(debug_jmp, IN, pull_up_down=PUD_UP)
+debug = 1 if not input(debug_jmp) else 0
 
 # Const
 CATCH_TIME_TH = 3 # seconds

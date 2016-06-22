@@ -6,7 +6,9 @@ import time
 
 ## Tomato (bi-sex) ##
 
-debug = 0
+debug_jmp = 29
+setup(debug_jmp, IN, pull_up_down=PUD_UP)
+debug = not input(debug_jmp)
 
 # Const
 CATCH_TIME_TH = 3 # seconds

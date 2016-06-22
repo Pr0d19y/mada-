@@ -5,7 +5,9 @@ from RPi.GPIO import *
 import time
 
 ## Zuccini ##
-debug=0
+debug_jmp = 29
+setup(debug_jmp, IN, pull_up_down=PUD_UP)
+debug = not input(debug_jmp)
 
 # Set Video Files
 idle_video_file          = '/home/pi/mada-/pollunation/videos/zucchini_idle.mp4'
