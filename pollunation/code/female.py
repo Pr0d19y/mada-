@@ -1,16 +1,22 @@
+gimport sys
+sys.path.append('/home/pi/mada-/classes')
+from omxplayer import OMXPlayer
 from RPi.GPIO import *
 import time
 
 ## Female ##
 
+debug=0
+
 # Const
 CATCH_TIME_TH = 3 # seconds
 
 # Set Video Files
-idle_video_file = '/home/pi/mada-/pollunation/videos/tzaleket_blink_00.mp4'
-dust_complete_video_file = '/home/pi/mada-/pollunation/videos/tzaleket_after_00.mp4'
-#idle_video = OMXPlayer(idle_video_file, loop = True)
-#dust_complete_video = OMXPlayer(dust_complete_video_file)
+idle_video_file          = '/home/pi/mada-/pollunation/videos/tzaleket_idle_1024X600.mp4'
+bee_on_video_file        = '/home/pi/mada-/pollunation/videos/tzaleket_blink_1024X600.mp4'
+dust_complete_video_file = '/home/pi/mada-/pollunation/videos/tzaleket_after_1024X600.mp4'
+idle_video = OMXPlayer(idle_video_file, loop = True, debug=debug)
+dust_complete_video = OMXPlayer(dust_complete_video_file, debug=debug)
 
 # Set GPIO names
 bee_on        = 38
@@ -25,7 +31,7 @@ output(flag_male, False)
 
 def state_idle():
   output(flag_male, False)
-  #play_video(idle_video, loop=True)
+  idle_video.play()
   while True:
     if input(wait_for_bee):
       return(state_wait_for_bee)
@@ -47,7 +53,10 @@ def state_bee_on():
 
 def state_dust_complete():
   output(flag_male, True)
-  #play_video(dust_complete_video, wait=True)
-  time.sleep(2)
+  idle_video.pause()
+  dust_complete_video.play()
+  while dust_complete_video.paused:
+    pass
+  #time.sleep(2)
   return state_idle
   

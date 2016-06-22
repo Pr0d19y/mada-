@@ -1,3 +1,4 @@
+
 import sys
 sys.path.append('/home/pi/mada-/classes')
 from omxplayer import OMXPlayer
@@ -6,17 +7,17 @@ import time
 
 ## Male ##
 
-debug=1
+debug=0
 
 # Const
 CATCH_TIME_TH = 3 # seconds
 
 # Set Video Files
-idle_video_file            = '/home/pi/mada-/pollunation/videos/avkanim_blink_00.mp4'
-wait_for_female_video_file = '/home/pi/mada-/pollunation/videos/avkanim_sequence_00.mp4'
+idle_video_file            = '/home/pi/mada-/pollunation/videos/avkanim_blink_1024x600.mp4'
+wait_for_female_video_file = '/home/pi/mada-/pollunation/videos/avkanim_after_1024x600.mp4'
 
 idle_video            = OMXPlayer(idle_video_file, loop=True, debug=debug)
-wait_for_female_video = OMXPlayer(wait_for_female_video_file, loop=True, debug=debug)
+wait_for_female_video = OMXPlayer(wait_for_female_video_file, loop=False, debug=debug)
 #omx = None
 
 # Set GPIO names
@@ -53,7 +54,7 @@ def state_bee_on():
       return state_idle
     if (time.time() - start_time)>=CATCH_TIME_TH:
       idle_video.pause()
-      idle_video.restart()
+      #idle_video.restart()
       return state_wait_for_female
   
 def state_wait_for_female():
@@ -62,16 +63,6 @@ def state_wait_for_female():
   wait_for_female_video.play()
   while not input(flag_idle):
     output(bee2female, input(bee_on))
-  wait_for_female_video.pause()
+  #wait_for_female_video.pause()
   wait_for_female_video.restart()
   return state_idle
-
-#def play(video_cmd):
-#  global omx
-#  print 'omx is {0}'.format(omx)
-#  if omx is not None:
-#    print 'Stopping'
-#    omx.stop()
-#    time.sleep(0.5)
-#    print 'Stopped'
-#  exec 'omx = {0}'.format(video_cmd)

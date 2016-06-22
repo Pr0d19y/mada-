@@ -28,10 +28,13 @@ class OMXPlayer(object):
     def __init__(self, mediafile, loop=False, args="", start_playback=False, debug=0):
         #args += " --no-osd"
         self.debug = debug
-        if self.debug:
-            args += " --win 0,0,800,400 "
         self.loop = loop
         self.start_playback = start_playback
+
+        if self.debug:
+            args += " --win 0,0,800,400 "
+        if self.loop:
+            args += " --loop "
         
         self.media_len = self.getMediaLength(mediafile)
 
@@ -71,10 +74,12 @@ class OMXPlayer(object):
                                             pexpect.TIMEOUT,
                                             pexpect.EOF,
                                             self._DONE_REXP])
-            if self.debug>1:
+            if self.debug>0 and index>0:
                 print 'index == {}'.format(index)
             if index == 1: continue
-            elif index in (2, 3): break
+            elif index in (2, 3):
+                self.paused = True
+                break
             else:
                 pos = float(self._process.match.group(1))
                 self.time_till_pause = pos
@@ -101,8 +106,9 @@ class OMXPlayer(object):
                 if not self.loop:
                     self.pause()
                     time.sleep(0.01)
-                self.restart()
-                self.play()
+                    self.restart()
+                #if self.loop:
+                #    self.play()
 
             time.sleep(0.05)
             
