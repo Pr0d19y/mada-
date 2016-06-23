@@ -35,11 +35,23 @@ class cracker_maker_controller(object):
         GPIO.setup(water_pin, GPIO.OUT)
         GPIO.setup(kneading_pin, GPIO.OUT)
         GPIO.setup(baking_pin, GPIO.OUT)
-        GPIO.setup(button_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-        
-        self.button_reader_thread = threading.Thread(target=self.button_reader)
-        self.button_reader_thread.start()
+        if cfg.USE_INPUT_BUTTON:
+            GPIO.setup(button_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+            self.button_reader_thread = threading.Thread(target=self.button_reader)
+            self.button_reader_thread.start()
+        else:
+            self.auto_runner = threading.Thread(target=self.auto_runner)
+            self.auto_runner.start()
+    
+    def auto_runner(self):
+        while(self.running):
+            try:
+                self.main_loop()
+                if cfg.RUN_ONCE:
+                    self.quit()
+            except Exception as ex:
+                self.logger.info('got exception: {}, probably quiting'.format(ex))
 
     def button_reader(self):
         self.logger.info('button_reader started')
