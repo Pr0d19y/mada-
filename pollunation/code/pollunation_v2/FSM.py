@@ -1,10 +1,13 @@
 import sys
-sys.path.append(r'C:\Users\ocohen10\Documents\MadaMuzeum\pollunation_v2')
-
+ 
 from pycom import Reset, pycom
 import time
 
-bee_on = None
+from RPi.GPIO import *
+setmode(BOARD)
+
+from omxplayer import OMXPlayer
+
 video_list = []
 class FSM:
 	"""
@@ -46,25 +49,37 @@ class FSM:
 			raise
 	
 class MaleFSM(FSM):
+        
 	def __init__(self,debug):
 		self.whoami = 'Male'
-		FSM.__init__(self,debug)
+                
+                self.bee_on = 38 ## input
+                setup(self.bee_on, IN, pull_up_down=PUD_DOWN)
+                
+                FSM.__init__(self,debug)
 		self.BEE_ANTI_BOUNCE = 3
-		
-		# idle_video_file = 
+
+		self.idle_video_file            = '/home/pi/mada-/pollunation/videos/avkanim_blink_1\
+024x600.mp4'
+                self.wait_for_female_video_file = '/home/pi/mada-/pollunation/videos/avkanim_after_1\
+024x600.mp4'
+                self.idle_video            = OMXPlayer(idle_video_file, loop=True, debug=self.debug)
+                self.wait_for_female_video = OMXPlayer(wait_for_female_video_file, loop=False, debug=self.debug)
+                		
 
 	def State_1(self):
 		"""
 		Idle
 		Male Blink
 		"""
-		# blink_video.play()
+		self.idle_video.play()
 		if self.debug: print 'blink_video.play()'
+
 		# Wait for bee with anti-bounce
 		start_time = time.time()
 		while time.time() - start_time < self.BEE_ANTI_BOUNCE:
-			if not self.input(bee_on):
-				if self.debug>2: print '\tBee Off'
+			if not input(self.bee_on):
+				#if self.debug>2: print '\tBee Off'
 				start_time = time.time()
 			time.sleep(0.1)
 		if self.debug: print 'State 1 ended'
@@ -73,16 +88,16 @@ class MaleFSM(FSM):
 		"""
 		Female Blink
 		"""
-		# blink_video.pause()
+		self.idle_video.pause()
 		if self.debug: print 'blink_video.pause()'
-		# collect_video.play()
+		self.wait_for_female_video.play()
 		if self.debug: print 'collect_video.play()'
 
 		# Wait for bee with anti-bounce
 		start_time = time.time()
 		while time.time() - start_time < self.BEE_ANTI_BOUNCE:
-			if not self.input(bee_on):
-				if self.debug>2: print '\tBee Off'
+			if not input(self.bee_on):
+				#if self.debug>2: print '\tBee Off'
 				start_time = time.time()
 			time.sleep(0.1)
 		if self.debug: print 'State 2 ended'
@@ -91,17 +106,17 @@ class MaleFSM(FSM):
 		"""
 		Pollunation Complete
 		"""
-		# collect_video.pause()
+		self.wait_for_female_video.pause()
 		if self.debug: print 'collect_video.pause()'
-		time.sleep(1.5)
-		# collect_video.restart()
+                time.sleep(0.5)
+                self.wait_for_female_video.restart()
 		if self.debug: print 'collect_video.restart()'
 		if self.debug: print 'State 3 ended'
 		return 1
 
-	# def input(self,null):
-		# import random
-		# return random.random() > 0.2
+	#def input(self,null):
+	#	import random
+	#	return random.random() > 0.2
 class FemaleFSM(FSM):
 	def __init__(self,debug):
 		self.whoami = 'Female'
