@@ -6,7 +6,8 @@ import time
 from RPi.GPIO import *
 setmode(BOARD)
 
-from omxplayer import OMXPlayer
+sys.path.append('/home/pi/mada-/classes/')
+from omxplayer_pollunation import OMXPlayer
 
 video_list = []
 class FSM:
@@ -63,8 +64,8 @@ class MaleFSM(FSM):
 024x600.mp4'
                 self.wait_for_female_video_file = '/home/pi/mada-/pollunation/videos/avkanim_after_1\
 024x600.mp4'
-                self.idle_video            = OMXPlayer(idle_video_file, loop=True, debug=self.debug)
-                self.wait_for_female_video = OMXPlayer(wait_for_female_video_file, loop=False, debug=self.debug)
+                self.idle_video            = OMXPlayer(self.idle_video_file, loop=True, debug=self.debug)
+                self.wait_for_female_video = OMXPlayer(self.wait_for_female_video_file, loop=False, debug=self.debug)
                 		
 
 	def State_1(self):
