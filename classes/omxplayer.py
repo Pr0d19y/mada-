@@ -28,7 +28,7 @@ class OMXPlayer(object):
     kill_self         = False
     
     def __init__(self, mediafile, loop=False, args="", start_playback=False, debug=0):
-        #args += " --no-osd"
+        args += " --no-osd"
         self.debug = debug
         self.loop = loop
         self.start_playback = start_playback
