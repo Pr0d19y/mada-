@@ -13,9 +13,9 @@ class pycom:
 		self.AKN = 'k' 
 		self.ERR = 'er'
 		
-		self.male_address   = '127.0.0.1'
-		self.female_address = '127.0.0.1'
-		self.zucc_address   = '127.0.0.1'
+		self.male_address   = '192.168.10.12'
+		self.female_address = '192.168.10.13'
+		self.zucc_address   = '192.168.10.14'
 		self.male_port      = 10000
 		self.female_port    = 10001
 		self.zucc_port      = 10002
