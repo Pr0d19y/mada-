@@ -71,8 +71,8 @@ class pycom:
 				time.sleep(0.5)
 				connection.close()
 				if self.debug: print 'Connection Closed'
-		self.sock.close()
-		if self.debug: print 'Socket Closed'
+				self.sock.close()
+				if self.debug: print 'Socket Closed'
 		
 	### CLIENT
 	def runMale(self, next_state):
