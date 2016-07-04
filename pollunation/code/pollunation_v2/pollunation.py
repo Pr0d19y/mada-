@@ -14,7 +14,9 @@ if True:
 	try:
 		fsm.runFSM()
 	except Reset:
+		raise
 		pass
 	except socket.error as e:
 		print e
+		raise
 		print 'Connection error, Resetting'
