@@ -25,7 +25,7 @@ class pycom:
 		self.zuccini_full_address   = (self.zucc_address, self.zucc_port) # Server #2
 		
 		exec "self.full_address = self.{0}_full_address".format(whoami.lower())
-		self.host = socket.gethostname()
+		#self.host = socket.gethostname()
 
 		exec "self.run = self.run{0}".format(whoami)
 
@@ -79,6 +79,10 @@ class pycom:
 		female_ret = self.send_state(self.female_full_address, next_state)
 		zucc_ret   = self.send_state(self.zuccini_full_address, next_state)
 		if not female_ret or not zucc_ret:
+			if debug: 
+				print 'Wrong Acknoledge Received'
+				import pdb
+				pdb.set_trace()
 			self.send_err()
 			raise Reset()
 		return next_state
