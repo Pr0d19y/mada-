@@ -9,7 +9,8 @@ debug = 3
 
 exec'fsm = FSM.{0}FSM(debug)'.format(whoami())
 
-while True:
+#while True:
+if True:
 	try:
 		fsm.runFSM()
 	except Reset:
