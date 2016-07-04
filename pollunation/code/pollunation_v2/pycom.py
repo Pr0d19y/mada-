@@ -42,7 +42,7 @@ class pycom:
 		# Listen for incoming connections
 		self.sock.listen(1)
 		import pdb
-		# pdb.set_trace()
+		pdb.set_trace()
 
 		if 1: # while True:
 			# Wait for a connection
