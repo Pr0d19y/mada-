@@ -7,7 +7,7 @@ from RPi.GPIO import *
 setmode(BOARD)
 
 sys.path.append('/home/pi/mada-/classes/')
-from omxplayer_pollunation import OMXPlayer
+#from omxplayer_pollunation import OMXPlayer
 
 video_list = []
 class FSM:
@@ -64,9 +64,10 @@ class MaleFSM(FSM):
 024x600.mp4'
                 self.wait_for_female_video_file = '/home/pi/mada-/pollunation/videos/avkanim_after_1\
 024x600.mp4'
-                self.idle_video            = OMXPlayer(self.idle_video_file, loop=True, debug=self.debug)
-                self.wait_for_female_video = OMXPlayer(self.wait_for_female_video_file, loop=False, debug=self.debug)
-                		
+                #self.idle_video            = OMXPlayer(self.idle_video_file, loop=True, debug=self.debug)
+                #self.wait_for_female_video = OMXPlayer(self.wait_for_female_video_file, loop=False, debug=self.debug)
+                self.idle_video = dummyPlayer()
+                self.wait_for_female_video = dummyPlayer()
 
 	def State_1(self):
 		"""
@@ -79,8 +80,8 @@ class MaleFSM(FSM):
 		# Wait for bee with anti-bounce
 		start_time = time.time()
 		while time.time() - start_time < self.BEE_ANTI_BOUNCE:
-			if not input(self.bee_on):
-				#if self.debug>2: print '\tBee Off'
+			if not self.input(self.bee_on):
+				if self.debug>2: print '\tBee Off'
 				start_time = time.time()
 			time.sleep(0.1)
 		if self.debug: print 'State 1 ended'
@@ -97,7 +98,7 @@ class MaleFSM(FSM):
 		# Wait for bee with anti-bounce
 		start_time = time.time()
 		while time.time() - start_time < self.BEE_ANTI_BOUNCE:
-			if not input(self.bee_on):
+			if not self.input(self.bee_on):
 				#if self.debug>2: print '\tBee Off'
 				start_time = time.time()
 			time.sleep(0.1)
@@ -115,9 +116,12 @@ class MaleFSM(FSM):
 		if self.debug: print 'State 3 ended'
 		return 1
 
-	#def input(self,null):
-	#	import random
-	#	return random.random() > 0.2
+	def input(self,null):
+		try:
+			self.i += 1
+		except:
+			self.i = 0
+		return self.i>3
 class FemaleFSM(FSM):
 	def __init__(self,debug):
 		self.whoami = 'Female'
@@ -180,3 +184,13 @@ class ZucciniFSM(FSM):
 		if self.debug: print 'state_complete_video.play()'
 		
 		if self.debug: print 'State 3 ended'
+
+class dummyPlayer:
+	def play(self):
+		pass
+	def pause(self):
+		pass
+	def stop(self):
+		pass
+	def restart(self):
+		pass
