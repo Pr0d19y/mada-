@@ -1,6 +1,6 @@
 import sys
 sys.path.append('/home/pi/mada-/classes')
-from omxplayer import OMXPlayer
+from omxplayer_pollunation import OMXPlayer
 from RPi.GPIO import *
 import time
 
