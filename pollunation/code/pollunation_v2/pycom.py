@@ -39,7 +39,7 @@ class pycom:
 		return self.server_listen(self.zuccini_full_address)
 
 	def server_listen(self, server_address):
-		is self.sock is None:
+		if self.sock is None:
 			self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.sock.bind(server_address)
 			# Listen for incoming connections
