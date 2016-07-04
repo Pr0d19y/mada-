@@ -26,6 +26,8 @@ class pycom:
 		
 		exec "self.full_address = self.{0}_full_address".format(whoami.lower())
 		#self.host = socket.gethostname()
+		
+		self.sock = None
 
 		exec "self.run = self.run{0}".format(whoami)
 
@@ -37,12 +39,13 @@ class pycom:
 		return self.server_listen(self.zuccini_full_address)
 
 	def server_listen(self, server_address):
-		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.sock.bind(server_address)
-		# Listen for incoming connections
-		self.sock.listen(1)
+		is self.sock is None:
+			self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			self.sock.bind(server_address)
+			# Listen for incoming connections
+			self.sock.listen(1)
 		import pdb
-		pdb.set_trace()
+		#pdb.set_trace()
 
 		if 1: # while True:
 			# Wait for a connection
@@ -71,9 +74,12 @@ class pycom:
 				time.sleep(0.5)
 				connection.close()
 				if self.debug: print 'Connection Closed'
-				self.sock.close()
-				if self.debug: print 'Socket Closed'
-		
+				
+	def __del__(self):
+		if self.sock is not None:
+			self.sock.close()
+		if self.debug: print 'Socket Closed'
+        
 	### CLIENT
 	def runMale(self, next_state):
 		female_ret = self.send_state(self.female_full_address, next_state)
