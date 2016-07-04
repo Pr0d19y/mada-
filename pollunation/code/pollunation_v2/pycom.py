@@ -13,7 +13,7 @@ class pycom:
 		self.AKN = 'k' 
 		self.ERR = 'er'
 		
-		self.male_address   = '192.168.10.15'
+		self.male_address   = '192.168.10.13'
 		self.female_address = '192.168.10.14'
 		self.zucc_address   = '192.168.10.12'
 		self.male_port      = 10000
