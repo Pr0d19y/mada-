@@ -29,15 +29,17 @@ class tree_player(object):
         self.movie_2 = movie_2
         self.current_state = None
         self.polling_tries = 0
+        self.stop_state = 0
+        self.stop_tries = 0
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.control_gpio, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(self.stop_gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         #GPIO.add_event_detect(self.control_gpio, GPIO.BOTH, callback=self.event, bouncetime=300)
-        GPIO.add_event_detect(self.stop_gpio, GPIO.FALLING, callback=self.quit, bouncetime=100)
+        #GPIO.add_event_detect(self.stop_gpio, GPIO.FALLING, callback=self.quit, bouncetime=200)
 
-        self.movie_1_controller = omxplayer.OMXPlayer(mediafile=self.movie_1, args=r'--loop  --no-osd', start_playback=False)
-        self.movie_2_controller = omxplayer.OMXPlayer(mediafile=self.movie_2, args=r'--loop  --no-osd', start_playback=False)
+        self.movie_1_controller = omxplayer.OMXPlayer(mediafile=self.movie_1, args=r'--loop -b --no-osd', start_playback=False)
+        self.movie_2_controller = omxplayer.OMXPlayer(mediafile=self.movie_2, args=r'--loop -b --no-osd', start_playback=False)
         sleep(1)
         self.running = True
         self.button_reader_thread = threading.Thread(target=self.button_reader)
@@ -54,6 +56,16 @@ class tree_player(object):
                 self.polling_tries += 1
             else:
                 self.polling_tries = 1
+
+            stop_state = not GPIO.input(self.stop_gpio) 
+            if stop_state and self.stop_tries == 50:
+                self.quit()
+            elif stop_state and self.stop_tries < 50:
+                self.stop_tries += 1
+            else:
+                self.stop_tries = 1
+
+
             sleep(0.005)
         self.logger.info('button_reader ended')
 
@@ -86,7 +98,7 @@ class tree_player(object):
             self.movie_2_controller.play()
         sleep(0.3)
 
-    def quit(self, event):
+    def quit(self):
         self.logger.info('in quit()')
         self.running = False
         sleep(0.05)
@@ -112,8 +124,8 @@ if __name__ == '__main__':
     init_logging()
     #movie1 = r'fruit_bad_720.mp4'
     #movie2 = r'fruit_good_720.mp4'
-    movie1 = r'piyoni_day_720px.mp4'
-    movie2 = r'piyoni_night_720px.mp4'
+    movie2 = r'piyoni_day_720px.mp4'
+    movie1 = r'piyoni_night_720px.mp4'
     gpio = 22
     player = tree_player(gpio_number=gpio, movie_1=movie1, movie_2=movie2)
 
