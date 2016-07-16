@@ -8,7 +8,7 @@ import logging
 from random import random
 
 
-def start_test(gpio, test_time):
+def start_test(gpio, test_time, scene='real'):
     logger = logging.getLogger('tree_player_tester')
     logger.info('starting tester at: {}'.format(datetime.datetime.now()))
     GPIO.setmode(GPIO.BCM)
@@ -18,15 +18,29 @@ def start_test(gpio, test_time):
     t0 = tc = time.time()
 
     while tc - t0 < test_time:
-        time_to_sleep = random() * 10
-        logger.info('waiting {} seconds'.format(time_to_sleep))
-        time.sleep(time_to_sleep)
-        new_state = not state
-        logger.info('writing new state: {}'.format(new_state))
-        GPIO.output(gpio, new_state)
-        state = new_state
-        tc = time.time()
+        if scene == 'frequent':
+            time_to_sleep = random() * 10
+            logger.info('waiting {} seconds'.format(time_to_sleep))
+            time.sleep(time_to_sleep)
+            new_state = not state
+            logger.info('writing new state: {}'.format(new_state))
+            GPIO.output(gpio, new_state)
+            state = new_state
+            tc = time.time()
 
+        elif scene == 'real':
+            logger.info('writing new state: {}'.format(1))
+            GPIO.output(gpio, 1)
+            time_to_sleep = random() * 50
+            logger.info('waiting {} seconds'.format(time_to_sleep))
+            time.sleep(time_to_sleep)
+
+            logger.info('writing new state: {}'.format(0))
+            GPIO.output(gpio, 0)
+            time_to_sleep = random() * 10
+            logger.info('waiting {} seconds'.format(time_to_sleep))
+            time.sleep(time_to_sleep)
+            tc = time.time()
 
 def init_logging():
     logger = logging.getLogger()

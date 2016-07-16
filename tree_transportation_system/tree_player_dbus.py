@@ -17,7 +17,7 @@ class tree_player(object):
     """
 
     def __init__(self, gpio_number, movie_1, movie_2):
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger('tree_player')
         self.logger.info('starting player')
         self.logger.info('movie 1: {}'.format(movie_1))
         self.logger.info('movie 2: {}'.format(movie_2))
@@ -69,8 +69,8 @@ class tree_player(object):
             else:
                 self.stop_tries = 1
 
-
             sleep(0.005)
+
         self.logger.info('button_reader ended')
 
     def read_current_buttons_state(self):
@@ -83,38 +83,49 @@ class tree_player(object):
         """
         one iteration of main loop,
         called when input is changed,
-        define logic and change tree motors, movies etc.
+        stop one movie, seek to 0 (so next time we start from beginning) and play other movie
         :return:
         """
         current_state = self.current_state
         if current_state:
             self.logger.info('state changed to HIGH, show BAD fruit movie')
             self.movie_2_controller.pause()
-            sleep(0.2)
-            self.movie_1_controller.seek(0)
-            sleep(0.2)
+            sleep(0.1)
+            self.movie_2_controller.set_position(0)
+            sleep(0.1)
             self.movie_1_controller.play()
 
         else:
             self.logger.info('state changed to LOW, show GOOD fruit movie')
             self.movie_1_controller.pause()
-            sleep(0.2)
-            self.movie_2_controller.seek(0)
-            sleep(0.3)
+            sleep(0.1)
+            self.movie_1_controller.set_position(0)
+            sleep(0.1)
             self.movie_2_controller.play()
         sleep(0.3)
 
     def quit(self):
         self.logger.info('in quit()')
         self.running = False
-        sleep(0.05)
+        sleep(0.1)
         GPIO.cleanup()
+        self.logger.info('stopping both movies')
         self.movie_1_controller.stop()
         self.movie_2_controller.stop()
         sleep(0.5)
-        self.movie_1_controller.quit()
-        self.movie_2_controller.quit()
+        self.logger.info('closing both players')
+        try:
+            self.movie_1_controller.quit()
+        except Exception as ex:
+            self.logger.error('while closing player 1, got ex: {}'.format(ex))
+
+        try:
+            self.movie_2_controller.quit()
+        except Exception as ex:
+            self.logger.error('while closing player 2, got ex: {}'.format(ex))
+
         sleep(0.5)
+        self.logger.info('quit function ended')
 
 
 def init_logging():
@@ -132,10 +143,10 @@ def init_logging():
 
 if __name__ == '__main__':
     init_logging()
-    #movie1 = r'fruit_bad_720.mp4'
-    #movie2 = r'fruit_good_720.mp4'
-    movie2 = r'piyoni_day_720px.mp4'
-    movie1 = r'piyoni_night_720px.mp4'
+    movie1 = r'fruit_bad_720.mp4'
+    movie2 = r'fruit_good_720.mp4'
+    #movie2 = r'piyoni_day_720px.mp4'
+    #movie1 = r'piyoni_night_720px.mp4'
     gpio = 22
     player = tree_player(gpio_number=gpio, movie_1=movie1, movie_2=movie2)
 
