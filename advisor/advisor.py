@@ -13,9 +13,9 @@ class advisor(object):
     """
 
     def __init__(self, gpio_number, movie):
-        print 'starting player'
-        print 'movie: {}'.format(movie)
-        print 'GPIO: {}'.format(gpio_number)
+        #print 'starting player'
+        #print 'movie: {}'.format(movie)
+        #print 'GPIO: {}'.format(gpio_number)
 
         self.control_gpio = gpio_number
         self.stop_gpio = 40
@@ -25,7 +25,7 @@ class advisor(object):
         self.last_event_time = 0
         self.last_event_was_play = True
 
-        self.movie_controller = OMXPlayer(mediafile=self.movie,args="--loop")
+        self.movie_controller = OMXPlayer(mediafile=self.movie,args="--loop -o local")
 
         GPIO.setmode(GPIO.BOARD)  # use board numbers (ie pin1, pin2 of board and not of the chip)
         GPIO.setup(self.control_gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -33,6 +33,9 @@ class advisor(object):
         GPIO.add_event_detect(self.stop_gpio, GPIO.FALLING, callback=self.quit, bouncetime=100)
         self.running = True
 
+        self.movie_controller.play()#######################################################################
+        time.sleep(config.STARTUP_PLAY_TIME)
+        
         self.pin_poll_thread = threading.Thread(target=self.poll_input)
         self.pin_poll_thread.start()
         
@@ -40,12 +43,12 @@ class advisor(object):
     def event(self):
         self.last_event_time = time.time()
         if self.current_state:
-            print "debug print : play_thread"
+            #print "debug print : play_thread"
             self.last_event_was_play = False
             stop_thread = threading.Thread(target=self.pause_wait_and_stop)
             stop_thread.start() 
         else:  
-            print "debug print : stop_thread"
+            #print "debug print : stop_thread"
             self.last_event_was_play = True
             play_thread = threading.Thread(target=self.play_after_delay)
             play_thread.start()             
@@ -61,7 +64,7 @@ class advisor(object):
             else:                                                                                   #stete has not changed, reset the stability count
                 self.polling_tries = 1                
             time.sleep(config.POLLING_DELAY)
-        print "debug print : quitting poll_input function"
+        #print "debug print : quitting poll_input function"
             
     def play_after_delay(self):
         ''' this method waits the DELAY_TIME specified in the config file, and then play the video ''' 
@@ -69,26 +72,26 @@ class advisor(object):
         time_since_last_event = time.time() - self.last_event_time
         # make sure there wasn't another event since this method was called before executing any other commands
         if time_since_last_event >= config.DELAY_TIME and self.last_event_was_play:
-            print "debug print : movie PLAY called"
+            #print "debug print : movie PLAY called"
             self.movie_controller.play()
               
     def pause_wait_and_stop(self):
         ''' this method pauses the video, waits the PAUSE_TIME specified in the config file, and then
             stops the video '''
-        print "debug print : movie PAUSE called"
+        #print "debug print : movie PAUSE called"
         self.movie_controller.pause()
         time.sleep(config.PAUSE_TIME)
         time_since_last_event = time.time() - self.last_event_time
         # make sure there wasn't another event since this method was called before executing any other commands
         if time_since_last_event >= config.PAUSE_TIME and not self.last_event_was_play:
-            print "debug print : movie STOP called"
+            #print "debug print : movie STOP called"
             self.movie_controller.restart()
             #self.movie_controller.stop()
             #self.movie_controller = OMXPlayer(mediafile=self.movie,args="--win 0,0,400,400")
             
 
     def quit(self, channel):
-        print "debug print: Quitting"
+        #print "debug print: Quitting"
         #GPIO.cleanup()
         self.movie_controller.stop()
         time.sleep(0.1)
