@@ -1,34 +1,22 @@
-import threading
-import logging
-import datetime
-import os
+
 import subprocess
 import re
 import sys
 sys.path.append("/home/pi/git/mada-")
-from classes import omxplayer
 import RPi.GPIO as GPIO
 import time
-from time import sleep
+from omxplayer import OMXPlayer
 
 GPIO.setmode(GPIO.BOARD)
 
 ## Tomato (bi-sex) ##
 
-#debug_jmp = 29
-#setup(debug_jmp, IN, pull_up_down=PUD_UP)
-#debug = not input(debug_jmp)
-
 # Const
 CATCH_TIME_TH = 3 # seconds
 
 # Set Video Files
-idle_video_file = '/home/pi/git/mada-/pollunation/videos/avkanim_blink_00.mp4'
-dust_complete_video_file = '/home/pi/git/mada-/pollunation/videos/avkanim_sequence_00.mp4'
-#idle_video = OMXPlayer(idle_video_file, loop = True, debug=debug)
-#dust_complete_video = OMXPlayer(dust_complete_video_file, debug=debug)
-#idle_video = omxplayer.OMXPlayer(mediafile=idle_video_file, args='--loop --no-osd -b', start_playback=False)
-#dust_complete_video = omxplayer.OMXPlayer(mediafile=dust_complete_video_file, args='--no-osd -b', start_playback=False)
+idle_video_file = '/home/pi/mada-/pollunation/videos/tomato_blink_1024X600.mp4'
+dust_complete_video_file = '/home/pi/mada-/pollunation/videos/tomato_after_1024X600.mp4'
 
 
 # Set GPIO names
@@ -39,6 +27,10 @@ GPIO.setup(bee_on      , GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(bee_buzz    , GPIO.OUT)
 
 GPIO.output(bee_buzz, True)
+
+
+idle_movie_controller = OMXPlayer(filename=idle_video_file, args=['--loop', '-b', '--no-osd'])
+dust_complete_movie_controller = OMXPlayer(filename=dust_complete_video_file, args=['-b', '--no-osd'])
 
 def findThisProcess( process_name ):
   ps     = subprocess.Popen("ps -eaf | grep "+process_name, shell=True, stdout=subprocess.PIPE)
@@ -60,20 +52,13 @@ def isThisRunning( process_name ):
 
 
 def state_idle():
-  
-  global idle_video_file
   print 'play movie a here'
-  subprocess.Popen(['feh --hide-pointer -x -q -B black -F /home/pi/git/mada-/Pollunation_OKap/idle.png'],shell=True)
+  idle_movie_controller.play()
   while True:
-	#print (["omxplayer"," --loop --no-osd -b ",dust_complete_video_file ])
 	print 'before play a!!!!!!!!!!!!'
-	subprocess.Popen(['exec omxplayer' + ' --loop --no-osd -b ' + idle_video_file] ,shell=True )
-	#idle_video = omxplayer.OMXPlayer(mediafile=idle_video_file, args='--loop --no-osd -b', start_playback=True)
 	state_bee_on()
 
 def state_bee_on():
-  global idle_video
-  global idle_video_file
   start_time = time.time()
   while  True:
     if not GPIO.input(bee_on):
@@ -81,21 +66,20 @@ def state_bee_on():
 
 
     if (time.time() - start_time)>= CATCH_TIME_TH:
-      #idle_video.stop()
-      #subprocess.call(['scrot'],shell=True)
-      subprocess.call(['pkill omxplayer'] ,shell=True )
+      idle_movie_controller.pause()
+      time.sleep(0.05)
+      idle_movie_controller.set_position(0)
       print 'after play a!!!!!!!!!!!'
       return state_dust_complete()
 
 def state_dust_complete():
 
-  #sleep(1)
-  #proc.kill
   print 'before play b!!!!!!!!!!!!!!11'
-  global dust_complete_video_file
-  subprocess.call(['omxplayer'+' --no-osd -b '+dust_complete_video_file ],shell=True)
-  #proc.kill
-  #sleep(5)
+  global dust_complete_movie_controller
+  dust_complete_movie_controller.play_sync()
+  dust_complete_movie_controller.quit()
+  dust_complete_movie_controller = OMXPlayer(filename=dust_complete_video_file, args=['-b', '--no-osd'])
+  idle_movie_controller.play()
   print 'after play b!!!!!!!!!!!!!!!!!'
 
 
