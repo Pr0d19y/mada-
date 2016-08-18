@@ -15,8 +15,8 @@ GPIO.setmode(GPIO.BOARD)
 CATCH_TIME_TH = 3 # seconds
 
 # Set Video Files
-idle_video_file = '/home/pi/mada-/pollunation/videos/tomato_blink_1024X600.mp4'
-dust_complete_video_file = '/home/pi/mada-/pollunation/videos/tomato_after_1024X600.mp4'
+idle_video_file = 'videos/tomato/tomato_blink_1024X600.mp4'
+dust_complete_video_file = 'videos/tomato/tomato_after_1024X600.mp4'
 
 
 # Set GPIO names
@@ -31,24 +31,6 @@ GPIO.output(bee_buzz, True)
 
 idle_movie_controller = OMXPlayer(filename=idle_video_file, args=['--loop', '-b', '--no-osd'])
 dust_complete_movie_controller = OMXPlayer(filename=dust_complete_video_file, args=['-b', '--no-osd'])
-
-def findThisProcess( process_name ):
-  ps     = subprocess.Popen("ps -eaf | grep "+process_name, shell=True, stdout=subprocess.PIPE)
-  output = ps.stdout.read()
-  ps.stdout.close()
-  ps.wait()
-
-  return output
-
-# This is the function you can use  
-def isThisRunning( process_name ):
-  output = findThisProcess( process_name )
-
-  if re.search('path/of/process'+process_name, output) is None:
-    return False
-  else:
-    return True
-
 
 
 def state_idle():

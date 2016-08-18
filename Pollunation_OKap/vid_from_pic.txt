@@ -1,0 +1,1 @@
+avconv -framerate 30 -loop 1 -i zuccini_female_idle_1024x600.png -c:v libx264 -t 10 -pix_fmt yuv420p -vf scale=1024:600 zuccini_female_idle_1024x600.mp4
