@@ -28,7 +28,6 @@ GPIO.setup(bee_light_o    , GPIO.OUT)
 GPIO.setup(male_to_female_o    , GPIO.OUT)
 GPIO.setup(female_to_male_i      , GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(force_stop_gpio_i      , GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(force_stop_gpio_i, GPIO.FALLING, callback=quit_program, bouncetime=100)
 
 GPIO.output(bee_light_o, False)
 GPIO.output(male_to_female_o, False)
@@ -83,6 +82,7 @@ def quit_program(event):
     time.sleep(0.5)
     subprocess.call('sudo pkill omxplayer', shell=True)
 
+GPIO.add_event_detect(force_stop_gpio_i, GPIO.FALLING, callback=quit_program, bouncetime=100)
 
 logger = logging.getLogger('male_zuccini')
 
