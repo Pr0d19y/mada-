@@ -11,27 +11,25 @@ CATCH_TIME_TH = 3 # seconds
 DEBOUNCE_TIME_TH = 0.2 # seconds
 
 # Set Video Files
-idle_video_file = 'videos/zuccini/zuccini_male_1024x600/zuccini_male_blink_1024x600.mp4'
-wait_video_file = 'videos/zuccini/zuccini_male_1024x600/zuccini_male_wait_1024x600.mp4'
-after_video_file = 'videos/zuccini/zuccini_male_1024x600/zuccini_male_after_1024x600.mp4'
+idle_video_file = 'videos/zuccini/zuccini_female_1024x600/zuccini_female_idle_1024x600.mp4'
+blink_video_file = 'videos/zuccini/zuccini_female_1024x600/zuccini_female_blink_1024x600.mp4'
+after_video_file = 'videos/zuccini/zuccini_female_1024x600/zuccini_female_after_1024x600.mp4'
 
 # Set GPIO names
 bee_on_i          = 38
-bee_light_o       = 36
-male_to_female_o  = 32
-female_to_male_i  = 31
+male_to_female_i  = 32
+female_to_male_o  = 31
+female_to_fruit_o = 33
 force_stop_gpio_i = 40
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(bee_on_i      , GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(bee_light_o    , GPIO.OUT)
-GPIO.setup(male_to_female_o    , GPIO.OUT)
-GPIO.setup(female_to_male_i      , GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(female_to_male_o    , GPIO.OUT)
+GPIO.setup(female_to_fruit_o    , GPIO.OUT)
+GPIO.setup(male_to_female_i      , GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(force_stop_gpio_i      , GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(force_stop_gpio_i, GPIO.FALLING, callback=quit_program, bouncetime=100)
 
-GPIO.output(bee_light_o, False)
-GPIO.output(male_to_female_o, False)
+GPIO.output(female_to_male_o, False)
 
 
 running = True
@@ -71,7 +69,7 @@ def quit_program(event):
         logger.info('while trying to quit after player, got exception: {}'.format(ex))
 
     try:
-        wait_movie_controller.stop()
+        blink_movie_controller.stop()
         time.sleep(0.5)
         #after_movie_controller.quit()
     except Exception as ex:
@@ -83,7 +81,8 @@ def quit_program(event):
     time.sleep(0.5)
     subprocess.call('sudo pkill omxplayer', shell=True)
 
-
+    
+GPIO.add_event_detect(force_stop_gpio_i, GPIO.FALLING, callback=quit_program, bouncetime=100)
 logger = logging.getLogger('male_zuccini')
 
 
@@ -91,19 +90,34 @@ logger = logging.getLogger('male_zuccini')
 logger.info('creating omxplayer objects')
 idle_movie_controller = OMXPlayer(filename=idle_video_file, args=['--loop', '--no-osd'])
 after_movie_controller = OMXPlayer(filename=after_video_file, args=['--no-osd'])
-wait_movie_controller = OMXPlayer(filename=wait_video_file, args=['--no-osd'])
+blink_movie_controller = OMXPlayer(filename=blink_video_file, args=['--loop', '--no-osd'])
 logger.info('finished creating omxplayer objects')
 
 
 def state_idle():
-    logger.info('starting idle movie')
+    logger.info('starting state_idle')
+    start_time = time.time()
     idle_movie_controller.play()
     while running:
-        state_bee_on()
+        if not GPIO.input(male_to_female_i):
+            start_time = time.time()
+            time.sleep(0.05)
 
-def state_bee_on():
+        if (time.time() - start_time) >= DEBOUNCE_TIME_TH:
+            logger.debug('male is done')
+            logger.debug('pausing idle movie')
+            idle_movie_controller.pause()
+            time.sleep(0.25)
+            logger.debug('returning idle movie to starting position')
+            idle_movie_controller.set_position(0)
+            time.sleep(0.25)
+            state_male_done()
+
+
+def state_male_done():
     logger.info('starting state_bee_on')
     start_time = time.time()
+    blink_movie_controller.play()
     while running:
         if not GPIO.input(bee_on_i):
             start_time = time.time()
@@ -111,50 +125,30 @@ def state_bee_on():
 
         if (time.time() - start_time) >= CATCH_TIME_TH:
             logger.debug('bee detected')
-            logger.debug('pausing idle movie')
-            idle_movie_controller.pause()
+            logger.debug('pausing blink movie')
+            blink_movie_controller.pause()
             time.sleep(0.25)
-            logger.debug('returning idle movie to starting position')
-            idle_movie_controller.set_position(0)
+            logger.debug('returning blink movie to starting position')
+            blink_movie_controller.set_position(0)
             time.sleep(0.25)
-            return state_bee_pollunated()
+            return state_female_pollunated()
 
-def state_bee_pollunated():
+def state_female_pollunated():
     logger.info('starting state_after')
     global after_movie_controller
     logger.debug('starting sync play of after movie')
-    GPIO.output(bee_light_o, True)
     logger.debug('Flag female to start blinking')
-    GPIO.output(male_to_female_o, True)
     after_movie_controller.play_sync()
+    GPIO.output(female_to_male_o, True)
+    GPIO.output(female_to_fruit_o, True)
     logger.debug('sync play of after movie ended')
     after_movie_controller.quit()
     logger.debug('opening new object for after_movie_controller')
-    after_movie_controller = OMXPlayer(filename=after_video_file, args=['--no-osd'])
+    #after_movie_controller = OMXPlayer(filename=after_video_file, args=['--no-osd'])
     time.sleep(0.25)
-    logger.debug('starting async play of wait movie')
-    wait_movie_controller.play()
-    return state_wait()
-
-def state_wait():
-    logger.info('starting state_wait')
-    start_time = time.time()
-    while running:
-        if not GPIO.input(female_to_male_i):
-            start_time = time.time()
-            time.sleep(0.05)
-
-        if (time.time() - start_time) >= DEBOUNCE_TIME_TH:
-            logger.debug('female is done')
-            logger.debug('pausing wait movie')
-            wait_movie_controller.pause()
-            time.sleep(0.25)
-            logger.debug('returning wait movie to starting position')
-            wait_movie_controller.set_position(0)
-            time.sleep(0.25)
-            return state_female_done()
-
-def state_female_done():
-    logger.debug('starting async play of idle movie')
-    GPIO.output(male_to_female_o, False)
     idle_movie_controller.play()
+    time.sleep(2)
+    GPIO.output(female_to_male_o, False)
+    GPIO.output(female_to_fruit_o, False)
+    logger.debug('starting async play of idle movie')
+    

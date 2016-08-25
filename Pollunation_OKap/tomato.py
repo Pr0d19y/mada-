@@ -67,6 +67,7 @@ logger = logging.getLogger('tomato')
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(bee_on      , GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(bee_buzz    , GPIO.OUT)
+GPIO.setup(stop_gpio      , GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.add_event_detect(stop_gpio, GPIO.FALLING, callback=quit_program, bouncetime=100)
 
 GPIO.output(bee_buzz, True)

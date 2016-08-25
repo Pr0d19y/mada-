@@ -5,9 +5,9 @@ GPIO.setmode(GPIO.BOARD)
 CATCH_TIME_TH = 3 # seconds
 
 # Determine Type
-zuccini_fruit_jmp = 26
-zuccini_male_jmp    = 40
-zuccini_female_jmp= 29
+zuccini_fruit_jmp = 29
+zuccini_male_jmp    = 19
+zuccini_female_jmp= 26
 tomato_jmp      = 33
 
 
