@@ -7,7 +7,7 @@ from omxplayer import OMXPlayer
 import subprocess
 
 # Const
-CATCH_TIME_TH = 3 # seconds
+CATCH_TIME_TH = 2 # seconds
 DEBOUNCE_TIME_TH = 0.2 # seconds
 
 # Set Video Files

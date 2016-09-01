@@ -7,16 +7,16 @@ from omxplayer import OMXPlayer
 import subprocess
 
 # Const
-CATCH_TIME_TH = 3 # seconds
+CATCH_TIME_TH = 2 # seconds
 
 # Set Video Files
 idle_video_file = 'videos/tomato/tomato_blink_1024X600.mp4'
 dust_complete_video_file = 'videos/tomato/tomato_after_1024X600.mp4'
 
 # Set GPIO names
-bee_on        = 38
-bee_buzz      = 37
-stop_gpio     = 40
+bee_on_i        = 24
+bee_buzz_o      = 23
+stop_gpio_i     = 40
 
 running = True
 
@@ -65,12 +65,12 @@ logger = logging.getLogger('tomato')
 
 
 GPIO.setmode(GPIO.BOARD)
-GPIO.setup(bee_on      , GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(bee_buzz    , GPIO.OUT)
-GPIO.setup(stop_gpio      , GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(stop_gpio, GPIO.FALLING, callback=quit_program, bouncetime=100)
+GPIO.setup(bee_on_i      , GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(bee_buzz_o    , GPIO.OUT)
+GPIO.setup(stop_gpio_i      , GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.add_event_detect(stop_gpio_i, GPIO.FALLING, callback=quit_program, bouncetime=100)
 
-GPIO.output(bee_buzz, True)
+GPIO.output(bee_buzz_o, True)
 
 
 logger.info('creating omxplayer objects')
@@ -90,9 +90,12 @@ def state_bee_on():
     logger.info('starting state_bee_on')
     start_time = time.time()
     while running:
-        if not GPIO.input(bee_on):
+        time.sleep(0.05)
+        if not GPIO.input(bee_on_i):
             start_time = time.time()
-            time.sleep(0.05)
+            GPIO.output(bee_buzz_o, True)
+        else
+            GPIO.output(bee_buzz_o, False)
 
         if (time.time() - start_time) >= CATCH_TIME_TH:
             logger.debug('bee detected')

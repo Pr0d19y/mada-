@@ -7,7 +7,7 @@ from omxplayer import OMXPlayer
 import subprocess
 
 # Const
-CATCH_TIME_TH = 3 # seconds
+CATCH_TIME_TH = 2 # seconds
 DEBOUNCE_TIME_TH = 0.2 # seconds
 
 # Set Video Files
@@ -126,6 +126,8 @@ def state_bee_pollunated():
     GPIO.output(bee_light_o, True)
     logger.debug('Flag female to start blinking')
     GPIO.output(male_to_female_o, True)
+    time.sleep(2)
+    GPIO.output(male_to_female_o, False)
     after_movie_controller.play_sync()
     logger.debug('sync play of after movie ended')
     after_movie_controller.quit()
@@ -146,6 +148,7 @@ def state_wait():
 
         if (time.time() - start_time) >= DEBOUNCE_TIME_TH:
             logger.debug('female is done')
+            GPIO.output(bee_light_o, False)
             logger.debug('pausing wait movie')
             wait_movie_controller.pause()
             time.sleep(0.25)
@@ -156,5 +159,4 @@ def state_wait():
 
 def state_female_done():
     logger.debug('starting async play of idle movie')
-    GPIO.output(male_to_female_o, False)
     idle_movie_controller.play()
