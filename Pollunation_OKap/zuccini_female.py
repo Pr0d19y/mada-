@@ -90,6 +90,8 @@ logger = logging.getLogger('male_zuccini')
 logger.info('creating omxplayer objects')
 idle_movie_controller = OMXPlayer(filename=idle_video_file, args=['--loop', '--no-osd'])
 after_movie_controller = OMXPlayer(filename=after_video_file, args=['--no-osd'])
+after_movie_controller.pause()
+after_movie_controller.set_position(0)
 blink_movie_controller = OMXPlayer(filename=blink_video_file, args=['--loop', '--no-osd'])
 logger.info('finished creating omxplayer objects')
 
