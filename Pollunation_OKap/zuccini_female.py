@@ -146,7 +146,7 @@ def state_female_pollunated():
     logger.debug('sync play of after movie ended')
     after_movie_controller.quit()
     logger.debug('opening new object for after_movie_controller')
-    #after_movie_controller = OMXPlayer(filename=after_video_file, args=['--no-osd'])
+    after_movie_controller = OMXPlayer(filename=after_video_file, args=['--no-osd'])
     time.sleep(0.25)
     idle_movie_controller.play()
     time.sleep(2)
