@@ -126,8 +126,6 @@ def state_bee_pollunated():
     GPIO.output(bee_light_o, True)
     logger.debug('Flag female to start blinking')
     GPIO.output(male_to_female_o, True)
-    time.sleep(2)
-    GPIO.output(male_to_female_o, False)
     after_movie_controller.play_sync()
     logger.debug('sync play of after movie ended')
     after_movie_controller.quit()
@@ -147,6 +145,7 @@ def state_wait():
             time.sleep(0.05)
 
         if (time.time() - start_time) >= DEBOUNCE_TIME_TH:
+	    GPIO.output(male_to_female_o, False)
             logger.debug('female is done')
             GPIO.output(bee_light_o, False)
             logger.debug('pausing wait movie')

@@ -19,7 +19,7 @@ after_video_file = 'videos/zuccini/zuccini_female_1024x600/zuccini_female_after_
 bee_on_i          = 38
 male_to_female_i  = 32
 female_to_male_o  = 31
-female_to_fruit_o = 33
+female_to_fruit_o = 35
 force_stop_gpio_i = 40
 
 GPIO.setmode(GPIO.BOARD)
@@ -140,9 +140,9 @@ def state_female_pollunated():
     global after_movie_controller
     logger.debug('starting sync play of after movie')
     logger.debug('Flag female to start blinking')
-    after_movie_controller.play_sync()
     GPIO.output(female_to_male_o, True)
     GPIO.output(female_to_fruit_o, True)
+    after_movie_controller.play_sync()
     logger.debug('sync play of after movie ended')
     after_movie_controller.quit()
     logger.debug('opening new object for after_movie_controller')

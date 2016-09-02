@@ -14,7 +14,7 @@ idle_video_file = 'videos/zuccini/zuccini_fruit_1920x1080/zuccini_fruit_idle_192
 after_video_file = 'videos/zuccini/zuccini_fruit_1920x1080/zuccini_fruit_after_1920x1080.mp4'
 
 # Set GPIO names
-female_to_fruit_i = 33
+female_to_fruit_i = 35
 force_stop_gpio_i = 40
 
 
