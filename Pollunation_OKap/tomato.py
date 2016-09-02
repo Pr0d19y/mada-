@@ -94,7 +94,7 @@ def state_bee_on():
         if not GPIO.input(bee_on_i):
             start_time = time.time()
             GPIO.output(bee_buzz_o, True)
-        else
+        else:
             GPIO.output(bee_buzz_o, False)
 
         if (time.time() - start_time) >= CATCH_TIME_TH:
