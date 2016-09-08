@@ -1,8 +1,8 @@
 __author__ = 'nfreiman'
 import re
 
-#DHCP_FILE_NAME = r'/etc/dhcpcd.conf'
-DHCP_FILE_NAME = r'dhcpcd_test.conf'
+DHCP_FILE_NAME = r'/etc/dhcpcd.conf'
+#DHCP_FILE_NAME = r'dhcpcd_test.conf'
 NEW_IP_LINE = 'static ip_address={}\n'
 
 IPS = {
@@ -18,7 +18,6 @@ def set_static_ip(ip):
     static_ip_regex = re.compile('static ip_address=([\d\.]+)')
     initial_file_lines = []
 
-    write_new_file = False
     block_exists = False
     with open(DHCP_FILE_NAME, 'r') as f:
         for line in f:
