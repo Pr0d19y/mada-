@@ -17,10 +17,10 @@ IPS = {
 
 
 def restart_comm_interfaces():
-    call('sudo /etc/init.d/networking restart')
-    sleep(2)
-    call('sudo ifup wlan0')
-    sleep(2)
+    call(['sudo', '/etc/init.d/networking', 'restart'])
+    sleep(3)
+    call(['sudo', 'ifup', 'wlan0'])
+    sleep(3)
 
 
 def set_static_ip(ip):
