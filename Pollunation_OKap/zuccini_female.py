@@ -9,6 +9,7 @@ import subprocess
 # Const
 CATCH_TIME_TH = 2 # seconds
 DEBOUNCE_TIME_TH = 0.2 # seconds
+TIMEOUT_TH = 55 #seconds
 
 # Set Video Files
 idle_video_file = 'videos/zuccini/zuccini_female_1024x600/zuccini_female_idle_1024x600.mp4'
@@ -116,8 +117,10 @@ def state_idle():
             state_male_done()
 
 
+
 def state_male_done():
     logger.info('starting state_bee_on')
+    start_time_for_timeout=time.time()
     start_time = time.time()
     blink_movie_controller.play()
     while running:
@@ -127,26 +130,31 @@ def state_male_done():
 
         if (time.time() - start_time) >= CATCH_TIME_TH:
             logger.debug('bee detected')
-            logger.debug('pausing blink movie')
-            blink_movie_controller.pause()
-            time.sleep(0.25)
-            logger.debug('returning blink movie to starting position')
-            blink_movie_controller.set_position(0)
-            time.sleep(0.25)
-            return state_female_pollunated()
+            return state_female_pollinated(False)
+        if (time.time() - start_time_for_timeout) >= TIMEOUT_TH:
+            logger.debug('timeout detected')         
+            return state_female_pollinated(True)
 
-def state_female_pollunated():
-    logger.info('starting state_after')
+
+def state_female_pollinated(is_timeout):
+    logger.debug('pausing blink movie')
+    blink_movie_controller.pause()
+    time.sleep(0.25)
+    logger.debug('returning blink movie to starting position')
+    blink_movie_controller.set_position(0)
+    time.sleep(0.25)
+    logger.info('starting state_female_pollinated')
     global after_movie_controller
-    logger.debug('starting sync play of after movie')
     logger.debug('Flag female to start blinking')
     GPIO.output(female_to_male_o, True)
-    GPIO.output(female_to_fruit_o, True)
-    after_movie_controller.play_sync()
-    logger.debug('sync play of after movie ended')
-    after_movie_controller.quit()
-    logger.debug('opening new object for after_movie_controller')
-    after_movie_controller = OMXPlayer(filename=after_video_file, args=['--no-osd'])
+    if not is_timeout:
+        GPIO.output(female_to_fruit_o, True)
+        logger.debug('starting sync play of after movie')
+        after_movie_controller.play_sync()
+        logger.debug('sync play of after movie ended')
+        after_movie_controller.quit()
+        logger.debug('opening new object for after_movie_controller')
+        after_movie_controller = OMXPlayer(filename=after_video_file, args=['--no-osd'])
     time.sleep(0.25)
     idle_movie_controller.play()
     time.sleep(2)
