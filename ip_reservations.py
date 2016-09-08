@@ -1,5 +1,7 @@
 __author__ = 'nfreiman'
 import re
+from subprocess import call
+from time import sleep
 
 DHCP_FILE_NAME = r'/etc/dhcpcd.conf'
 #DHCP_FILE_NAME = r'dhcpcd_test.conf'
@@ -12,6 +14,13 @@ IPS = {
     'pollination_zuc_fruit': '192.168.10.15',
     'cracker_maker': '192.168.10.16'
 }
+
+
+def restart_comm_interfaces():
+    call('sudo /etc/init.d/networking restart')
+    sleep(2)
+    call('sudo ifup wlan0')
+    sleep(2)
 
 
 def set_static_ip(ip):
@@ -43,6 +52,9 @@ def set_static_ip(ip):
     with open(DHCP_FILE_NAME, 'w') as f:
         for line in initial_file_lines:
             f.write(line)
+
+    restart_comm_interfaces()
+
 
 if __name__ == '__main__':
     set_static_ip(IPS['pollination_zuc_male'])
