@@ -12,7 +12,17 @@ IPS = {
     'pollination_zuc_male': '192.168.10.13',
     'pollination_zuc_female': '192.168.10.14',
     'pollination_zuc_fruit': '192.168.10.15',
-    'cracker_maker': '192.168.10.16'
+    'cracker_maker': '192.168.10.16',
+    'tree_controller': '192.168.10.17',
+    'tree_player1': '192.168.10.18',
+    'tree_player2': '192.168.10.19',
+    'world_map': '192.168.10.20',
+    'tomato_barcode': '192.168.10.21',
+    'advisor_1': '192.168.10.22',
+    'advisor_2': '192.168.10.23',
+    'advisor_3': '192.168.10.24',
+    'advisor_4': '192.168.10.25',
+    'ani_garger': '192.168.10.26',
 }
 
 
