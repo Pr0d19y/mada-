@@ -103,15 +103,15 @@ class cracker_maker_controller(object):
         kneeding_waiting_time = cfg.KNEADING_TIME - (time() - t_start_kneed)
         self.logger.info('waiting more {} [S] so kneading machine will finish auto kneeding'.format(kneeding_waiting_time))
         sleep(kneeding_waiting_time)
-   	
-	    if cfg.USE_PULSED_EXTRUSTION:
-                self.small_extrusions()
-            else:
-                self.extrude()
+
+        if cfg.USE_PULSED_EXTRUSTION:
+            self.small_extrusions()
+        else:
+            self.extrude()
         
         self.logger.info('stopping power to kneading machine')
         GPIO.output(self.kneading_power_pin, 0)
-        sleep(TIME_TO_WAIT_BETWEEN_RUNS)
+        sleep(cfg.TIME_TO_WAIT_BETWEEN_RUNS)
     
     def check_quit_pin(self):
         self.logger.info('in check quit pin')
