@@ -1,11 +1,11 @@
 __author__ = 'nfreiman'
 import os
 import logging
-import datetime
+from datetime import datetime, timedelta
 from cracker_maker_parts import Grinder, Water, Kneader
 import Tkinter as Tk
 from ttk import Button, Checkbutton
-from Tkinter import Text, INSERT, IntVar, Canvas, NW, Label
+from Tkinter import Text, INSERT, IntVar, Canvas, NW, Label, DISABLED, NORMAL
 from time import sleep, strftime
 import threading
 
@@ -53,7 +53,7 @@ class View(object):
     def initialize_buttons(self):
         self.logger.info('in initialize_buttons')
 
-        grinding_button = Button(self.frame, text="Grind", state='disabled')
+        grinding_button = Button(self.frame, text="Grind", state=DISABLED)
         grinding_button.grid(row=1, column=0)
         self.buttons['grinding_button'] = grinding_button
 
@@ -99,28 +99,50 @@ class View(object):
     def initialize_status_viewers(self):
         self.logger.info('in initialize_status_viewers')
 
-        grind_status = StatusCanvasShower(frame=self.frame, on_image_path=r'graphics\green_box.gif', off_image_path=r'graphics\red_box.gif')
+        grind_status = StatusCanvasShower(frame=self.frame, on_image_path=os.path.join('graphics', 'green_box.gif'), off_image_path=os.path.join('graphics', 'red_box.gif'))
         grind_status.grid(row=1, column=1)
         self.status_viewers['grind_status'] = grind_status
 
-        water_status = StatusCanvasShower(frame=self.frame, on_image_path=r'graphics\green_box.gif', off_image_path=r'graphics\red_box.gif')
+        water_status = StatusCanvasShower(frame=self.frame, on_image_path=os.path.join('graphics', 'green_box.gif'), off_image_path=os.path.join('graphics', 'red_box.gif'))
         water_status.grid(row=2, column=1)
         self.status_viewers['water_status'] = water_status
 
-        knead_status = StatusCanvasShower(frame=self.frame, on_image_path=r'graphics\green_box.gif', off_image_path=r'graphics\red_box.gif')
+        knead_status = StatusCanvasShower(frame=self.frame, on_image_path=os.path.join('graphics', 'green_box.gif'), off_image_path=os.path.join('graphics', 'red_box.gif'))
         knead_status.grid(row=3, column=1)
         self.status_viewers['knead_status'] = knead_status
 
-        extrude_status = StatusCanvasShower(frame=self.frame, on_image_path=r'graphics\green_box.gif', off_image_path=r'graphics\red_box.gif')
+        extrude_status = StatusCanvasShower(frame=self.frame, on_image_path=os.path.join('graphics', 'green_box.gif'), off_image_path=os.path.join('graphics', 'red_box.gif'))
         extrude_status.grid(row=4, column=1)
         self.status_viewers['extrude_status'] = extrude_status
 
     def initialize_status_timers(self):
+        grind_timer_var = Tk.StringVar()
+        grind_timer_var.set(str(timedelta(seconds=0))[:7])
+        self.status_timers_vars['grind_timer_var'] = grind_timer_var
+        grind_timer = Label(self.frame, textvariable=grind_timer_var)
+        grind_timer.grid(row=1, column=2)
+        self.status_timers['grind_timer'] = grind_timer
+
+        water_timer_var = Tk.StringVar()
+        water_timer_var.set(str(timedelta(seconds=0))[:7])
+        self.status_timers_vars['water_timer_var'] = water_timer_var
+        water_timer = Label(self.frame, textvariable=water_timer_var)
+        water_timer.grid(row=2, column=2)
+        self.status_timers['water_timer'] = water_timer
+
         knead_timer_var = Tk.StringVar()
+        knead_timer_var.set(str(timedelta(seconds=0))[:7])
         self.status_timers_vars['knead_timer_var'] = knead_timer_var
-        knead_timer = Label(self.frame)
+        knead_timer = Label(self.frame, textvariable=knead_timer_var)
         knead_timer.grid(row=3, column=2)
         self.status_timers['knead_timer'] = knead_timer
+
+        extrude_timer_var = Tk.StringVar()
+        extrude_timer_var.set(str(timedelta(seconds=0))[:7])
+        self.status_timers_vars['extrude_timer_var'] = extrude_timer_var
+        extrude_timer = Label(self.frame, textvariable=extrude_timer_var)
+        extrude_timer.grid(row=4, column=2)
+        self.status_timers['extrude_timer'] = extrude_timer
 
 
 class StatusCanvasShower(Canvas):
@@ -178,12 +200,14 @@ class Controller(object):
         self.logger.info('in manual_mode, param: {}'.format(mode))
         if mode:
             self.logger.info('manual mode set, enabling manual operation')
+            self.model.manual_mode = True
             for button in self.view.buttons.values():
-                button.configure({'state': 'enabled'})
+                button.configure(state=NORMAL)
         else:
             self.logger.info('manual mode off, disabling manual operation')
+            self.model.manual_mode = False
             for button in self.view.buttons.values():
-                button.configure({'state': 'disabled'})
+                button.configure(state=DISABLED)
 
     def graphic_status_thread(self):
         """
@@ -195,67 +219,105 @@ class Controller(object):
             grind_viewer = self.view.status_viewers['grind_status']
             if self.model.grinder.grinding_state:
                 grind_viewer.set_on()
+                grind_timer_var = self.view.status_timers_vars['grind_timer_var']
+                raw_timer = self.model.grinder.operation_timer
+                text_timer = str(raw_timer)[:7]
+                grind_timer_var.set(text_timer)
             else:
                 grind_viewer.set_off()
 
             water_viewer = self.view.status_viewers['water_status']
             if self.model.water.water_state:
                 water_viewer.set_on()
+                water_timer_var = self.view.status_timers_vars['water_timer_var']
+                raw_timer = self.model.water.operation_timer
+                text_timer = str(raw_timer)[:7]
+                water_timer_var.set(text_timer)
             else:
                 water_viewer.set_off()
 
             extrude_viewer = self.view.status_viewers['extrude_status']
             if self.model.kneader.kneader_state == self.model.kneader.states['EXTRUDING']:
                 extrude_viewer.set_on()
+
+                extrude_timer_var = self.view.status_timers_vars['extrude_timer_var']
+                raw_timer = self.model.kneader.operation_timer
+                text_timer = str(raw_timer)[:7]
+                extrude_timer_var.set(text_timer)
             else:
                 extrude_viewer.set_off()
 
             knead_viewer = self.view.status_viewers['knead_status']
             if self.model.kneader.kneader_state == self.model.kneader.states['KNEADING']:
                 knead_viewer.set_on()
+
                 knead_timer_var = self.view.status_timers_vars['knead_timer_var']
                 raw_timer = self.model.kneader.operation_timer
-                text_timer = raw_timer.strftime("%H:%M:%S")
+                text_timer = str(raw_timer)[:7]
                 knead_timer_var.set(text_timer)
             else:
                 knead_viewer.set_off()
 
 
+def manual_mode_decorator(func):
+    """
+    check if we are in "manual mode", if yes: run the wanted function, else: do nothing (return None)
+    :param func: function to wrap
+    :return: wrapped function
+    """
+    def wrapped(self, *args, **kwargs):
+        # print self.manual_mode
+        if self.manual_mode:
+            return func(self, *args, **kwargs)
 
+    return wrapped
 
 
 class Model(object):
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info('initializing Model')
-
+        self.manual_mode = False
         self.grinder = Grinder()
         self.water = Water()
         self.kneader = Kneader(button_1=1, button_2=2)
 
+    @manual_mode_decorator
     def start_grinding(self, event):
         self.logger.info('in start_grinding')
         self.grinder.start_grinding()
 
+    @manual_mode_decorator
     def stop_grinding(self, event):
         self.logger.info('in stop_grinding')
         self.grinder.stop_grinding()
 
+    @manual_mode_decorator
     def start_water(self, event):
         self.logger.info('in start_water')
         self.water.start_water()
 
+    @manual_mode_decorator
     def stop_water(self, event):
         self.logger.info('in stop_water')
         self.water.stop_water()
 
+    @manual_mode_decorator
     def start_kneading_cycle(self, event):
         self.logger.info('in start_kneading_cycle')
         self.kneader.start_kneading_cycle()
 
+    @manual_mode_decorator
     def start_extrude(self, event):
         self.logger.info('in start_extrude')
         self.kneader.extrude()
+
+
+
+
+
+
+
 
     '''
     def manual_mode(self, mode):
@@ -271,7 +333,7 @@ def init_logging():
     logger = logging.getLogger()
     s_handler = logging.StreamHandler()
 
-    filename = os.path.join('logs', 'cracker_maker_{}.log'.format(datetime.datetime.now().strftime('%d-%m-%y_%H-%M-%S')))
+    filename = os.path.join('logs', 'cracker_maker_{}.log'.format(datetime.now().strftime('%d-%m-%y_%H-%M-%S')))
     if not os.path.exists(os.path.dirname(filename)):
         os.makedirs(os.path.dirname(filename))
 
