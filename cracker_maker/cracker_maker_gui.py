@@ -6,7 +6,7 @@ from cracker_maker_parts import Grinder, Water, Kneader
 import Tkinter as Tk
 from ttk import Button, Checkbutton
 from Tkinter import Text, INSERT, IntVar, Canvas, NW, Label, DISABLED, NORMAL
-from time import sleep, strftime
+from time import sleep
 import threading
 
 
@@ -15,6 +15,7 @@ class View(object):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info('initializing View')
         self.frame = Tk.Frame(master, borderwidth=50)
+        master.wm_title("Cracker Maker Controller")
 
         self.buttons = {}
         self.text_areas = {}
@@ -23,18 +24,20 @@ class View(object):
         self.status_timers = {}
         self.manual_mode_state = IntVar()
         self.manual_mode_checkbox = None
+        self.logger_frame = None
 
         self.initialize_frame()
         self.initialize_buttons()
         self.initialize_text()
         self.initialize_status_viewers()
         self.initialize_status_timers()
+        self.initialize_logger_frame()
 
         # create layout
         self.frame.pack()
 
     def initialize_frame(self):
-        self.logger.info('in initialize_gui')
+        self.logger.debug('in initialize_gui')
         self.frame.columnconfigure(0, pad=3)
         self.frame.columnconfigure(1, pad=3)
         self.frame.columnconfigure(2, pad=3)
@@ -45,13 +48,14 @@ class View(object):
         self.frame.rowconfigure(2, pad=3)
         self.frame.rowconfigure(3, pad=3)
         self.frame.rowconfigure(4, pad=3)
+        self.frame.rowconfigure(5, pad=3)
 
         manual_mode = Checkbutton(self.frame, text='Manual Mode', variable=self.manual_mode_state)
         manual_mode.grid(row=0, column=0)
         self.manual_mode_checkbox = manual_mode
 
     def initialize_buttons(self):
-        self.logger.info('in initialize_buttons')
+        self.logger.debug('in initialize_buttons')
 
         grinding_button = Button(self.frame, text="Grind", state=DISABLED)
         grinding_button.grid(row=1, column=0)
@@ -70,48 +74,49 @@ class View(object):
         self.buttons['extrude_button'] = extrude_button
 
     def initialize_text(self):
-        self.logger.info('in initialize_text')
+        self.logger.debug('in initialize_text')
 
         grinding_text = Text(self.frame)
         grinding_text.insert(INSERT, 'just some text explanations for grinding')
-        grinding_text.configure({'state': 'disabled', 'height': 3, 'width': 30, 'wrap': 'word'})
+        grinding_text.configure({'state': 'disabled', 'height': 3, 'width': 50, 'wrap': 'word'})
         grinding_text.grid(row=1, column=3)
         self.text_areas['grinding_text'] = grinding_text
 
         water_text = Text(self.frame)
         water_text.insert(INSERT, 'just some text explanations for water')
-        water_text.configure({'state': 'disabled', 'height': 3, 'width': 30, 'wrap': 'word'})
+        water_text.configure({'state': 'disabled', 'height': 3, 'width': 50, 'wrap': 'word'})
         water_text.grid(row=2, column=3)
         self.text_areas['water_text'] = water_text
 
         knead_text = Text(self.frame)
         knead_text.insert(INSERT, 'just some text explanations for knead')
-        knead_text.configure({'state': 'disabled', 'height': 3, 'width': 30, 'wrap': 'word'})
+        knead_text.configure({'state': 'disabled', 'height': 3, 'width': 50, 'wrap': 'word'})
         knead_text.grid(row=3, column=3)
         self.text_areas['knead_text'] = knead_text
 
         extrude_text = Text(self.frame)
         extrude_text.insert(INSERT, 'just some text explanations for extrude')
-        extrude_text.configure({'state': 'disabled', 'height': 3, 'width': 30, 'wrap': 'word'})
+        extrude_text.configure({'state': 'disabled', 'height': 3, 'width': 50, 'wrap': 'word'})
         extrude_text.grid(row=4, column=3)
         self.text_areas['extrude_text'] = extrude_text
 
     def initialize_status_viewers(self):
-        self.logger.info('in initialize_status_viewers')
-
-        grind_status = StatusCanvasShower(frame=self.frame, on_image_path=os.path.join('graphics', 'green_box.gif'), off_image_path=os.path.join('graphics', 'red_box.gif'))
+        self.logger.debug('in initialize_status_viewers')
+        off_img_name = 'Toggle_Off_48.gif'
+        on_img_name = 'Toggle_On_48.gif'
+        grind_status = StatusCanvasShower(frame=self.frame, on_image_path=os.path.join('graphics', on_img_name), off_image_path=os.path.join('graphics', off_img_name))
         grind_status.grid(row=1, column=1)
         self.status_viewers['grind_status'] = grind_status
 
-        water_status = StatusCanvasShower(frame=self.frame, on_image_path=os.path.join('graphics', 'green_box.gif'), off_image_path=os.path.join('graphics', 'red_box.gif'))
+        water_status = StatusCanvasShower(frame=self.frame, on_image_path=os.path.join('graphics', on_img_name), off_image_path=os.path.join('graphics', off_img_name))
         water_status.grid(row=2, column=1)
         self.status_viewers['water_status'] = water_status
 
-        knead_status = StatusCanvasShower(frame=self.frame, on_image_path=os.path.join('graphics', 'green_box.gif'), off_image_path=os.path.join('graphics', 'red_box.gif'))
+        knead_status = StatusCanvasShower(frame=self.frame, on_image_path=os.path.join('graphics', on_img_name), off_image_path=os.path.join('graphics', off_img_name))
         knead_status.grid(row=3, column=1)
         self.status_viewers['knead_status'] = knead_status
 
-        extrude_status = StatusCanvasShower(frame=self.frame, on_image_path=os.path.join('graphics', 'green_box.gif'), off_image_path=os.path.join('graphics', 'red_box.gif'))
+        extrude_status = StatusCanvasShower(frame=self.frame, on_image_path=os.path.join('graphics', on_img_name), off_image_path=os.path.join('graphics', off_img_name))
         extrude_status.grid(row=4, column=1)
         self.status_viewers['extrude_status'] = extrude_status
 
@@ -144,10 +149,21 @@ class View(object):
         extrude_timer.grid(row=4, column=2)
         self.status_timers['extrude_timer'] = extrude_timer
 
+    def initialize_logger_frame(self):
+        logger_text = Text(self.frame)
+        logger_text.configure({'height': 6, 'width': 124, 'wrap': 'word'})
+        logger_text.grid(row=5, columnspan=4)
+        self.logger_frame = logger_text
+        root_logger = logging.getLogger()
+        gui_handler = WidgetLogger(widget=self.logger_frame)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        gui_handler.setFormatter(formatter)
+        root_logger.addHandler(gui_handler)
+
 
 class StatusCanvasShower(Canvas):
     def __init__(self, frame, on_image_path, off_image_path):
-        Canvas.__init__(self, frame, width=100, height=100)
+        Canvas.__init__(self, frame, width=100, height=48)
         self.on_image = Tk.PhotoImage(file=on_image_path)
         self.off_image = Tk.PhotoImage(file=off_image_path)
         self.image_on_canvas = self.create_image(0, 0, anchor=NW, image=self.on_image)
@@ -178,7 +194,7 @@ class Controller(object):
         self.status_thread.start()
 
     def assign_buttons(self):
-        self.logger.info('in assign_buttons')
+        self.logger.debug('in assign_buttons')
         buttons = self.view.buttons
         buttons['grinding_button'].bind("<Button-1>", self.model.start_grinding)
         buttons['grinding_button'].bind("<ButtonRelease-1>", self.model.stop_grinding)
@@ -197,14 +213,14 @@ class Controller(object):
         self.root.mainloop()
 
     def manual_mode(self, mode):
-        self.logger.info('in manual_mode, param: {}'.format(mode))
+        self.logger.debug('in manual_mode, param: {}'.format(mode))
         if mode:
-            self.logger.info('manual mode set, enabling manual operation')
+            self.logger.debug('manual mode set, enabling manual operation')
             self.model.manual_mode = True
             for button in self.view.buttons.values():
                 button.configure(state=NORMAL)
         else:
-            self.logger.info('manual mode off, disabling manual operation')
+            self.logger.debug('manual mode off, disabling manual operation')
             self.model.manual_mode = False
             for button in self.view.buttons.values():
                 button.configure(state=DISABLED)
@@ -284,49 +300,57 @@ class Model(object):
 
     @manual_mode_decorator
     def start_grinding(self, event):
-        self.logger.info('in start_grinding')
+        self.logger.debug('in start_grinding')
         self.grinder.start_grinding()
 
     @manual_mode_decorator
     def stop_grinding(self, event):
-        self.logger.info('in stop_grinding')
+        self.logger.debug('in stop_grinding')
         self.grinder.stop_grinding()
 
     @manual_mode_decorator
     def start_water(self, event):
-        self.logger.info('in start_water')
+        self.logger.debug('in start_water')
         self.water.start_water()
 
     @manual_mode_decorator
     def stop_water(self, event):
-        self.logger.info('in stop_water')
+        self.logger.debug('in stop_water')
         self.water.stop_water()
 
     @manual_mode_decorator
     def start_kneading_cycle(self, event):
-        self.logger.info('in start_kneading_cycle')
+        self.logger.debug('in start_kneading_cycle')
         self.kneader.start_kneading_cycle()
 
     @manual_mode_decorator
     def start_extrude(self, event):
-        self.logger.info('in start_extrude')
+        self.logger.debug('in start_extrude')
         self.kneader.extrude()
 
 
+class WidgetLogger(logging.Handler):
+    def __init__(self, widget):
+        logging.Handler.__init__(self)
+        self.setLevel(logging.DEBUG)
+        self.widget = widget
+        self.widget.config(state='disabled')
 
+        self.widget.tag_config("INFO", foreground="black")
+        self.widget.tag_config("DEBUG", foreground="grey")
+        self.widget.tag_config("WARNING", foreground="orange")
+        self.widget.tag_config("ERROR", foreground="red")
+        self.widget.tag_config("CRITICAL", foreground="red", underline=1)
+        self.red = self.widget.tag_configure("red", foreground="red")
 
-
-
-
-
-    '''
-    def manual_mode(self, mode):
-        self.logger.info('in manual_mode, param: {}'.format(mode))
-        if mode:
-            self.logger.info('manual mode set, enabling manual operation')
-        else:
-            self.logger.info('manual mode off, disabling manual operation')
-    '''
+    def emit(self, record):
+        self.widget.config(state='normal')
+        # Append message (record) to the widget
+        self.widget.insert(Tk.END, self.format(record) + '\n', record.levelname)
+        self.widget.see(Tk.END)  # Scroll to the bottom
+        self.widget.config(state='disabled')
+        self.flush()
+        self.widget.update() # Refresh the widget
 
 
 def init_logging():
