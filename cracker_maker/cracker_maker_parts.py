@@ -3,11 +3,22 @@ import logging
 from time import sleep
 import threading
 from datetime import datetime, timedelta
+import cracker_maker_config as cfg
 
 
 class Grinder(object):
-    def __init__(self):
+    def __init__(self, grinder_pin=cfg.GRINDER_PIN, simulate=True):
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.grinder_pin = grinder_pin
+        self.simulate = simulate
+        self.logger.info('initializing Grinder, grinder_pin: {}'.format(self.grinder_pin))
+        if not self.simulate:
+            self.logger.info('running in real mode, initializing GPIO pin')
+            import RPi.GPIO as GPIO
+            GPIO.setmode(GPIO.BCM)  # use chip numbering
+            GPIO.setup(grinder_pin, GPIO.OUT)
+            GPIO.output(self.grinder_pin, 0)
+
         self.grinding_state = None
         self.operation_timer = timedelta(seconds=0)
 
@@ -15,7 +26,9 @@ class Grinder(object):
         self.logger.debug('in Grinder.start_grinding')
         if not self.grinding_state:
             self.grinding_state = True
-            # TODO implement start of grinder
+            if not self.simulate:
+                GPIO.output(self.grinder_pin, 1)
+
             t = threading.Thread(target=self.timer_updater_thread_function)
             t.setDaemon(True)
             t.start()
@@ -26,7 +39,8 @@ class Grinder(object):
         self.logger.debug('in Grinder.stop_grinding')
         if self.grinding_state:
             self.grinding_state = False
-            # implement stop of grinder
+            if not self.simulate:
+                GPIO.output(self.grinder_pin, 0)
         else:
             self.logger.debug('grinder already OFF, doing nothing')
 
@@ -40,8 +54,18 @@ class Grinder(object):
 
 
 class Water(object):
-    def __init__(self):
+    def __init__(self, water_pin=cfg.WATER_PIN, simulate=True):
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.water_pin = water_pin
+        self.simulate = simulate
+        self.logger.info('initializing Water, grinder_pin: {}'.format(self.water_pin))
+        if not self.simulate:
+            self.logger.info('running in real mode, initializing GPIO pin')
+            import RPi.GPIO as GPIO
+            GPIO.setmode(GPIO.BCM)  # use chip numbering
+            GPIO.setup(water_pin, GPIO.OUT)
+            GPIO.output(self.water_pin, 0)
+
         self.water_state = None
         self.operation_timer = timedelta(seconds=0)
 
@@ -49,7 +73,8 @@ class Water(object):
         self.logger.debug('in Water.start_water')
         if not self.water_state:
             self.water_state = True
-            # TODO implement start of Water
+            if not self.simulate:
+                GPIO.output(self.water_pin, 1)
             t = threading.Thread(target=self.timer_updater_thread_function)
             t.setDaemon(True)
             t.start()
@@ -60,7 +85,8 @@ class Water(object):
         self.logger.debug('in Water.stop_water')
         if self.water_state:
             self.water_state = False
-            # implement stop of grinder
+            if not self.simulate:
+                GPIO.output(self.water_pin, 0)
         else:
             self.logger.debug('Water already OFF, doing nothing')
 

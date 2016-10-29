@@ -27,3 +27,14 @@ EXTRUSION_TIME = 70   # how much time does an extrusion cycle take
 # debug options
 USE_INPUT_BUTTON = False  # if set to True, machine will start only on button touch
 RUN_ONCE = False  # for debugging, run macine once and finish loop
+
+# pin configurations
+GRINDER_PIN = 24
+WATER_PIN = 18
+BUTTON_PIN = 7
+KNEADING_POWER_PIN = 23
+KNEADING_PIN = 15
+KNEADING_EXTRUSION_PIN = 14
+BAKING_PIN = 25
+QUIT_PIN = 12
+

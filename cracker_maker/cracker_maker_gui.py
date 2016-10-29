@@ -8,6 +8,9 @@ from ttk import Button, Checkbutton
 from Tkinter import Text, INSERT, IntVar, Canvas, NW, Label, DISABLED, NORMAL
 from time import sleep
 import threading
+import sys
+sys.path.append('../classes/')
+import ip_reservations
 
 
 class View(object):
@@ -372,6 +375,11 @@ def init_logging():
 
 
 if __name__ == '__main__':
+    # set IP for cracker maker IP
+    #ip_reservations.set_static_ip(ip_reservations.IPS['cracker_maker'])
+
     init_logging()
+
+    # start GUI
     controller = Controller()
     controller.run()

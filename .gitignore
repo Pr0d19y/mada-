@@ -1,3 +1,4 @@
 #eclipse enviroment files
 .project
 .pydevproject
+*.log
