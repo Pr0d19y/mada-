@@ -4,10 +4,13 @@ import threading
 import logging
 import datetime
 import os
-#from classes import omxplayer
 import RPi.GPIO as GPIO
 from time import sleep
 from omxplayer import OMXPlayer
+import sys
+sys.path.append('../classes/')
+import ip_reservations
+
 
 
 class tree_player(object):
@@ -143,6 +146,7 @@ def init_logging():
 
 if __name__ == '__main__':
     init_logging()
+    ip_reservations.set_static_ip(ip=ip_reservations.IPS['tree_player1'])
     movie1 = r'fruit_bad_720.mp4'
     movie2 = r'fruit_good_720.mp4'
     #movie2 = r'piyoni_day_720px.mp4'
