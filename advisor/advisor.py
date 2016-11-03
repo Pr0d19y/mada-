@@ -1,9 +1,12 @@
 __author__ = 'Or Levi'
 
+import sys
 import advisor_config as config
 import time
 import threading
 import RPi.GPIO as GPIO
+#sys.path.append('/home/pi/mada-/classes/')
+import classes.ip_reservations as ip_reservations
 from classes.omxplayer import OMXPlayer
 
 class advisor(object):
@@ -26,6 +29,14 @@ class advisor(object):
         self.last_event_was_play = True
 
         self.movie_controller = OMXPlayer(mediafile=self.movie,args="--loop -o local")
+        if self.movie == r'/home/pi/Downloads/dan_levanon.mp4':
+            ip_reservations.set_static_ip(ip_reservations.IPS['dan_levanon'])
+        elif self.movie == r'/home/pi/Downloads/market_intreviews.mp4':
+            ip_reservations.set_static_ip(ip_reservations.IPS['market_intreviews'])
+        elif self.movie == r'/home/pi/Downloads/uri_ariel.mp4':
+            ip_reservations.set_static_ip(ip_reservations.IPS['uri_ariel'])
+        elif self.movie == r'/home/pi/Downloads/eyal_kimchi.mp4':
+            ip_reservations.set_static_ip(ip_reservations.IPS['eyal_kimchi'])
 
         GPIO.setmode(GPIO.BOARD)  # use board numbers (ie pin1, pin2 of board and not of the chip)
         GPIO.setup(self.control_gpio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
