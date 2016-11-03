@@ -147,10 +147,10 @@ def init_logging():
 if __name__ == '__main__':
     init_logging()
     ip_reservations.set_static_ip(ip=ip_reservations.IPS['tree_player1'])
-    movie1 = r'fruit_bad_720.mp4'
-    movie2 = r'fruit_good_720.mp4'
-    #movie2 = r'piyoni_day_720px.mp4'
-    #movie1 = r'piyoni_night_720px.mp4'
+    #movie1 = r'fruit_bad_720.mp4'
+    #movie2 = r'fruit_good_720.mp4'
+    movie2 = r'piyoni_day_720px.mp4'
+    movie1 = r'piyoni_night_720px.mp4'
     gpio = 22
     player = tree_player(gpio_number=gpio, movie_1=movie1, movie_2=movie2)
 
